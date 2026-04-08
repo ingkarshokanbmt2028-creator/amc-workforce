@@ -3,6 +3,10 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useAuth, ROLE_LABELS } from '@/lib/auth'
+import {
+  AreaChart, Area, BarChart, Bar,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+} from 'recharts'
 
 interface Stats {
   totalStaff: number; departments: number
@@ -11,6 +15,7 @@ interface Stats {
 }
 interface DeptStat { id: string; name: string; code: string; total: number; present: number; absent: number; onLeave: number }
 interface OvertimeRecord { id: string; employeeId: string; employeeName: string; department: string; date: string; hoursWorked: number; overtimeHours: number; status: string }
+interface TrendPoint { day: string; present: number; absent: number; leave: number }
 
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday']
 const MONTHS_FULL = ['January','February','March','April','May','June','July','August','September','October','November','December']
@@ -175,6 +180,8 @@ export default function Dashboard() {
   const [deptStats, setDeptStats] = useState<DeptStat[]>([])
   const [overtime, setOvertime] = useState<OvertimeRecord[]>([])
   const [dateStr, setDateStr] = useState('')
+  const [trendData, setTrendData] = useState<TrendPoint[]>([])
+  const [deductions, setDeductions] = useState(0)
 
   useEffect(() => {
     const ds = new Date().toISOString().slice(0, 10)
@@ -238,6 +245,31 @@ export default function Dashboard() {
           }
         })
       setOvertime(otRecs)
+
+      // Build 7-day attendance trend from month records
+      const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+      const today = new Date()
+      const trend: TrendPoint[] = []
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(today)
+        d.setDate(today.getDate() - i)
+        const ds = d.toISOString().slice(0, 10)
+        const dayRecs = monthRecs.filter((a: any) => {
+          const rd = typeof a.date === 'string' ? a.date.slice(0, 10) : new Date(a.date).toISOString().slice(0, 10)
+          return rd === ds
+        })
+        trend.push({
+          day: DAY_LABELS[d.getDay()],
+          present: dayRecs.filter((a: any) => a.status === 'PRESENT' || a.status === 'LATE').length,
+          absent: dayRecs.filter((a: any) => a.status === 'ABSENT').length,
+          leave: dayRecs.filter((a: any) => a.status === 'ON_LEAVE').length,
+        })
+      }
+      setTrendData(trend)
+
+      // Estimate deductions: absent days × avg daily rate (GH₵ 80 placeholder)
+      const absentCount = monthRecs.filter((a: any) => a.status === 'ABSENT').length
+      setDeductions(absentCount * 80)
     })
   }, [])
 
@@ -248,6 +280,7 @@ export default function Dashboard() {
     { label: 'On Leave',       value: stats?.onLeaveToday ?? '—',  color: 'bg-amber-500/10 text-amber-300',  icon: '🌴' },
     { label: 'Absent',         value: stats?.absentToday ?? '—',   color: 'bg-red-500/10 text-red-300',      icon: '❌' },
     { label: 'Overtime Today', value: stats?.overtimeToday ?? '—', color: 'bg-orange-500/10 text-orange-300', icon: '⏰' },
+    { label: 'Deductions GH₵', value: stats ? `₵${deductions.toLocaleString()}` : '—', color: 'bg-rose-500/10 text-rose-300', icon: '💸' },
   ]
 
   const narrative = stats && deptStats.length > 0 ? buildNarrative(stats, deptStats, dateStr) : ''
@@ -295,7 +328,7 @@ export default function Dashboard() {
       )}
 
       {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {statCards.map((s) => (
           <div key={s.label} className={`rounded-xl p-4 ${s.color} border border-current/10`}>
             <div className="text-xl mb-1">{s.icon}</div>
@@ -303,6 +336,69 @@ export default function Dashboard() {
             <div className="text-xs font-medium opacity-70 mt-0.5">{s.label}</div>
           </div>
         ))}
+      </div>
+
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* 7-day attendance trend */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+          <h2 className="font-semibold text-white mb-4 text-sm">7-Day Attendance Trend</h2>
+          {trendData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={180}>
+              <AreaChart data={trendData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                <defs>
+                  <linearGradient id="gPresent" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
+                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gAbsent" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="day" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ background: '#1a1d27', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
+                  itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
+                />
+                <Area type="monotone" dataKey="present" stroke="#f59e0b" strokeWidth={2} fill="url(#gPresent)" name="Present" />
+                <Area type="monotone" dataKey="absent" stroke="#ef4444" strokeWidth={1.5} fill="url(#gAbsent)" name="Absent" />
+              </AreaChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">
+              No attendance data yet
+            </div>
+          )}
+        </div>
+
+        {/* Department bar chart */}
+        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+          <h2 className="font-semibold text-white mb-4 text-sm">Department Overview</h2>
+          {deptStats.length > 0 ? (
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={deptStats.slice(0, 8)} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+                <XAxis dataKey="code" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ background: '#1a1d27', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
+                  itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
+                />
+                <Bar dataKey="total" fill="#f59e0b" fillOpacity={0.7} radius={[3, 3, 0, 0]} name="Total" />
+                <Bar dataKey="present" fill="#22c55e" fillOpacity={0.8} radius={[3, 3, 0, 0]} name="Present" />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">
+              No department data yet
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Department overview */}

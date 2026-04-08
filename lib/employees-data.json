@@ -1,0 +1,2462 @@
+[
+  {
+    "id": "AMC/ACC/MED/001",
+    "staffId": "AMC/ACC/MED/001",
+    "name": "NYANYUIE KODJO LOVI",
+    "position": "PHYSICIAN SPECIALIST - HOSPITALIST",
+    "employeeType": "SPECIALIST",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/003",
+    "staffId": "AMC/ACC/MED/003",
+    "name": "HARRIET ALORIBASUA KANLISI",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/004",
+    "staffId": "AMC/ACC/MED/004",
+    "name": "SHARON MARTEKIE SACKEY",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/GRP/MED/001",
+    "staffId": "AMC/GRP/MED/001",
+    "name": "CYNTHIA OPOKU- AKOTO",
+    "position": "FAMILY PHYSICIAN - CEO",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/GRP/MED/002",
+    "staffId": "AMC/GRP/MED/002",
+    "name": "OBED OKOE ALLOTEY-BABINGTON",
+    "position": "ANAESTHETIST SPECIALIST - HMD",
+    "employeeType": "SPECIALIST",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/010",
+    "staffId": "AMC/ACC/MED/010",
+    "name": "JOSEF WEWOLI AVEREYIREH",
+    "position": "SENIOR MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/011",
+    "staffId": "AMC/ACC/MED/011",
+    "name": "ERNEST JUNIOR BOACHIE",
+    "position": "SENIOR MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/013",
+    "staffId": "AMC/ACC/MED/013",
+    "name": "NATHANIEL RUSSEL NII AYITEY ATTOH",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/016",
+    "staffId": "AMC/ACC/MED/016",
+    "name": "JEFFREY PARKER",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/019",
+    "staffId": "AMC/ACC/MED/019",
+    "name": "EMMANUEL LOUIS INTERFUL (JNR)",
+    "position": "SENIOR MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/020",
+    "staffId": "AMC/ACC/MED/020",
+    "name": "NANA AKUA OKAI NTONI",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/021",
+    "staffId": "AMC/ACC/MED/021",
+    "name": "TAMUNOIBIM COOKEY",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/023",
+    "staffId": "AMC/ACC/MED/023",
+    "name": "NAZEEFA YAKUBU",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/024",
+    "staffId": "AMC/ACC/MED/024",
+    "name": "LOREEN SOPHIA ACKON",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/025",
+    "staffId": "AMC/ACC/MED/025",
+    "name": "SARAH FAAKOR TOSEAFA",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/026",
+    "staffId": "AMC/ACC/MED/026",
+    "name": "ISAAC OPOKU FOFIE",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/027",
+    "staffId": "AMC/ACC/MED/027",
+    "name": "RAPHAELA AGYARKO",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/MED/028",
+    "staffId": "AMC/ACC/MED/028",
+    "name": "AKOSUA ANANE-DARKO",
+    "position": "MEDICAL OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "MED",
+    "department": {
+      "id": "MED",
+      "code": "MED",
+      "name": "MEDICINE"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/001",
+    "staffId": "AMC/ACC/NUR/001",
+    "name": "VIDA AYEGBE",
+    "position": "NURSING DIRECTOR",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/005",
+    "staffId": "AMC/ACC/NUR/005",
+    "name": "MARGARET AYIM",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/006",
+    "staffId": "AMC/ACC/NUR/006",
+    "name": "JOYCE ZUREK",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/007",
+    "staffId": "AMC/ACC/NUR/007",
+    "name": "SANDRA OTCHERE",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/008",
+    "staffId": "AMC/ACC/NUR/008",
+    "name": "JAHEL DODOO",
+    "position": "SENIOR NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/009",
+    "staffId": "AMC/ACC/NUR/009",
+    "name": "CHRISTIANA BREW-COFIE",
+    "position": "SENIOR NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/010",
+    "staffId": "AMC/ACC/NUR/010",
+    "name": "GODWIN AGBEWU",
+    "position": "DEPUTY CERTIFIED REGISTERED ANAESTHETIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/013",
+    "staffId": "AMC/ACC/NUR/013",
+    "name": "EMMANUEL TAMPAH-NAAH",
+    "position": "DEPUTY NURSING DIRECTOR",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/012",
+    "staffId": "AMC/ACC/NUR/012",
+    "name": "MUSTAPHA ABUBAKAR",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/018",
+    "staffId": "AMC/ACC/NUR/018",
+    "name": "LINDA ABOAGYEWAA OHENE",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/020",
+    "staffId": "AMC/ACC/NUR/020",
+    "name": "COMFORT BAWAH",
+    "position": "PRINCIPAL NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/021",
+    "staffId": "AMC/ACC/NUR/021",
+    "name": "IVY NYAMEKYE AYITEY",
+    "position": "SENIOR HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/022",
+    "staffId": "AMC/ACC/NUR/022",
+    "name": "RAMATU MUSAH",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/024",
+    "staffId": "AMC/ACC/NUR/024",
+    "name": "ANITA LEBENE AZAGLO-TAY",
+    "position": "PRINCIPAL NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/025",
+    "staffId": "AMC/ACC/NUR/025",
+    "name": "GLORIA ANNAN",
+    "position": "SENIOR HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/027",
+    "staffId": "AMC/ACC/NUR/027",
+    "name": "OLIVIA ATSUPUI NUWORKPOR",
+    "position": "PRINCIPAL NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/029",
+    "staffId": "AMC/ACC/NUR/029",
+    "name": "GODWIN KWAME TORNYEAVA",
+    "position": "SENIOR NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/031",
+    "staffId": "AMC/ACC/NUR/031",
+    "name": "THERESA DEDE TISEI",
+    "position": "PRINCIPAL NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/035",
+    "staffId": "AMC/ACC/NUR/035",
+    "name": "ANNA GYEKYE-QUANSAH",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/037",
+    "staffId": "AMC/ACC/NUR/037",
+    "name": "ANITA BANAALEH",
+    "position": "STAFF NURSE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/038",
+    "staffId": "AMC/ACC/NUR/038",
+    "name": "MERCY OPPONG",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/039",
+    "staffId": "AMC/ACC/NUR/039",
+    "name": "RITA AGBEMENU",
+    "position": "DEPUTY NURSING DIRECTOR",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/040",
+    "staffId": "AMC/ACC/NUR/040",
+    "name": "RHODA ACKON",
+    "position": "STAFF MIDWIFE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/044",
+    "staffId": "AMC/ACC/NUR/044",
+    "name": "JOSEPHINE TUFFOUR HINSON",
+    "position": "MIDWIFERY OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/045",
+    "staffId": "AMC/ACC/NUR/045",
+    "name": "GIFTY SEFAKOR ATTOR",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/046",
+    "staffId": "AMC/ACC/NUR/046",
+    "name": "AKUA FREMPONG ASAMOAH",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/050",
+    "staffId": "AMC/ACC/NUR/050",
+    "name": "HILDA OFOSUAH AGYAPONG",
+    "position": "NURSING ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/042",
+    "staffId": "AMC/ACC/NUR/042",
+    "name": "JOSEPHINE AWUKUBEA YEBOAH",
+    "position": "SENIOR CERTIFIED REGISTERED ANEASTHETIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/052",
+    "staffId": "AMC/ACC/NUR/052",
+    "name": "LETICIA KAKI ADADE",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/053",
+    "staffId": "AMC/ACC/NUR/053",
+    "name": "CALVIN NOBLE ANANE",
+    "position": "SENIOR NURSING OFFICER - THEATRE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/054",
+    "staffId": "AMC/ACC/NUR/054",
+    "name": "DZIDZOR ABLAH KPODO-TAY",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/055",
+    "staffId": "AMC/ACC/NUR/055",
+    "name": "DEBORAH REHOBOTH QUARTEY",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/057",
+    "staffId": "AMC/ACC/NUR/057",
+    "name": "PONJIN, JOSEPH MABITAAB",
+    "position": "SENIOR NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/059",
+    "staffId": "AMC/ACC/NUR/059",
+    "name": "LYDIA POKUAH ASAMOAH",
+    "position": "STAFF MIDWIFE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/060",
+    "staffId": "AMC/ACC/NUR/060",
+    "name": "RICHARD OBLIE ARMAH",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/061",
+    "staffId": "AMC/ACC/NUR/061",
+    "name": "EMMANUEL POWERS GYAMFI",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/062",
+    "staffId": "AMC/ACC/NUR/062",
+    "name": "BISMARK OPOKU YEBOAH",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/064",
+    "staffId": "AMC/ACC/NUR/064",
+    "name": "LYDIA LISA CUDJOE",
+    "position": "PNO - CRITICAL CARE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/065",
+    "staffId": "AMC/ACC/NUR/065",
+    "name": "AMA SERWAH OTENG",
+    "position": "SNO - CRITICAL CARE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/067",
+    "staffId": "AMC/ACC/NUR/067",
+    "name": "GLORIA LOUISA TETTEH",
+    "position": "PNO - CRITICAL CARE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/068",
+    "staffId": "AMC/ACC/NUR/068",
+    "name": "DEBORAH AKORKOR MENSAH",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/069",
+    "staffId": "AMC/ACC/NUR/069",
+    "name": "CASSANDRA MENSAH",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/070",
+    "staffId": "AMC/ACC/NUR/070",
+    "name": "JEMIMAH DZIEDZORM AFI AGBODZAH",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/071",
+    "staffId": "AMC/ACC/NUR/071",
+    "name": "PERFECT ESINAM SEDOFIA",
+    "position": "HEALTH ASSISTANT PREVENTIVE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/072",
+    "staffId": "AMC/ACC/NUR/072",
+    "name": "DANIEL ASSUAH",
+    "position": "SENIOR STAFF NURSE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/073",
+    "staffId": "AMC/ACC/NUR/073",
+    "name": "EMMANUELLA BOAKYE-YIADOM",
+    "position": "STAFF NURSE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/074",
+    "staffId": "AMC/ACC/NUR/074",
+    "name": "HILDAGARD ACQUAH",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/075",
+    "staffId": "AMC/ACC/NUR/075",
+    "name": "JOHN ATUKUMAH",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/076",
+    "staffId": "AMC/ACC/NUR/076",
+    "name": "ANITA OSEI",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/077",
+    "staffId": "AMC/ACC/NUR/077",
+    "name": "LUCKY ACQUAH-BAIDOO",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/078",
+    "staffId": "AMC/ACC/NUR/078",
+    "name": "MERCY DERY",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/079",
+    "staffId": "AMC/ACC/NUR/079",
+    "name": "ANGELA YEVU",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/080",
+    "staffId": "AMC/ACC/NUR/080",
+    "name": "MAVIS OPOKUA-MIREKU",
+    "position": "MIDWIFERY OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/081",
+    "staffId": "AMC/ACC/NUR/081",
+    "name": "DANIEL D'ALMEIDA",
+    "position": "PNO-PERI OPERATIVE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/082",
+    "staffId": "AMC/ACC/NUR/082",
+    "name": "CECILIA DEDE AKAKPO",
+    "position": "STAFF NURSE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/083",
+    "staffId": "AMC/ACC/NUR/083",
+    "name": "GODSON ANNIPAH",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/084",
+    "staffId": "AMC/ACC/NUR/084",
+    "name": "ROSINA AMPOMAH",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/086",
+    "staffId": "AMC/ACC/NUR/086",
+    "name": "EUGENE DODZI TAMAKLOE",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/088",
+    "staffId": "AMC/ACC/NUR/088",
+    "name": "MORDA HABIBATU SULEMANA",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/089",
+    "staffId": "AMC/ACC/NUR/089",
+    "name": "MERCY AMI ADDOH",
+    "position": "STAFF NURSE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/090",
+    "staffId": "AMC/ACC/NUR/090",
+    "name": "ANTOINETTE NYAMEKYE ADDAE",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/091",
+    "staffId": "AMC/ACC/NUR/091",
+    "name": "ANTOINETTE AKOSUA AVORYI",
+    "position": "NURSING OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/092",
+    "staffId": "AMC/ACC/NUR/092",
+    "name": "ELIZABETH KONADU",
+    "position": "STAFF NURSE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/093",
+    "staffId": "AMC/ACC/NUR/093",
+    "name": "ETHEL BAIDOO-KONDUAH",
+    "position": "SENIOR STAFF NURSE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/094",
+    "staffId": "AMC/ACC/NUR/094",
+    "name": "ELIZABETH ANGELEY AKO-NAI",
+    "position": "SENIOR STAFF MIDWIFE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/087",
+    "staffId": "AMC/ACC/NUR/087",
+    "name": "ETHEL KPORTI",
+    "position": "HEALTH ASSISTANT CLINICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/095",
+    "staffId": "AMC/ACC/NUR/095",
+    "name": "IRENE BOTCHWAY",
+    "position": "PNO - SPECIALIST & SURGICAL SERV CLINICAL COORDINATOR",
+    "employeeType": "SPECIALIST",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/NUR/096",
+    "staffId": "AMC/ACC/NUR/096",
+    "name": "EVA WOLISO",
+    "position": "MIDWIFERY OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "NUR",
+    "department": {
+      "id": "NUR",
+      "code": "NUR",
+      "name": "NURSING & MIDWIFERY"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/003",
+    "staffId": "AMC/ACC/ALI/003",
+    "name": "JANET BREW-YALLEY",
+    "position": "LABORATORY TECHNOLOGIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/006",
+    "staffId": "AMC/ACC/ALI/006",
+    "name": "DAVID TEI",
+    "position": "LABORATORY TECHNOLOGIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/009",
+    "staffId": "AMC/ACC/ALI/009",
+    "name": "COLLINS AMPONSAH",
+    "position": "LABORATORY TECHNOLOGIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/010",
+    "staffId": "AMC/ACC/ALI/010",
+    "name": "BENJAMIN KONNEY AKUETTEH",
+    "position": "LABORATORY MANAGER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/011",
+    "staffId": "AMC/ACC/ALI/011",
+    "name": "STEPHANE ASARE-BOATENG",
+    "position": "LABORATORY TECHNOLOGIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/015",
+    "staffId": "AMC/ACC/ALI/015",
+    "name": "SALFORD ISSAH",
+    "position": "EMT PARAMEDIC",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/016",
+    "staffId": "AMC/ACC/ALI/016",
+    "name": "STANLEY EWORDAFE",
+    "position": "EMT PARAMEDIC",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/017",
+    "staffId": "AMC/ACC/ALI/017",
+    "name": "ISAAC TETTEH",
+    "position": "EMT PARAMEDIC",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/018",
+    "staffId": "AMC/ACC/ALI/018",
+    "name": "EBENEZER KETOR",
+    "position": "EMT PARAMEDIC",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/020",
+    "staffId": "AMC/ACC/ALI/020",
+    "name": "EDEM MOSES AGGOR",
+    "position": "RADIOGRAPHER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/022",
+    "staffId": "AMC/ACC/ALI/022",
+    "name": "EMMANUEL SIKA TETTEH",
+    "position": "MEDICAL LABORATORY SCIENTIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/023",
+    "staffId": "AMC/ACC/ALI/023",
+    "name": "KWAME DELASI GALLEY",
+    "position": "MEDICAL LABORATORY SCIENTIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/024",
+    "staffId": "AMC/ACC/ALI/024",
+    "name": "RAPHAEL AGBESI AKORLI",
+    "position": "MEDICAL LABORATORY TECHNOLOGIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/026",
+    "staffId": "AMC/ACC/ALI/026",
+    "name": "FARIDA SANNI SULLEY",
+    "position": "RADIOGRAPHER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/027",
+    "staffId": "AMC/ACC/ALI/027",
+    "name": "BOAMAH, BENEDICT NYANKSON",
+    "position": "MEDICAL LABORATORY TECHNOLOGIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/028",
+    "staffId": "AMC/ACC/ALI/028",
+    "name": "MATHEW THOMAS",
+    "position": "RADIOGRAPHER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/029",
+    "staffId": "AMC/ACC/ALI/029",
+    "name": "SAMUEL OSEI SACKEY",
+    "position": "SENIOR SONOGRAPHER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/030",
+    "staffId": "AMC/ACC/ALI/030",
+    "name": "ANDREWS APPIAH ASANTE",
+    "position": "DIETICIAN",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/031",
+    "staffId": "AMC/ACC/ALI/031",
+    "name": "FLORENCE NAYO",
+    "position": "DIET COOK",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/032",
+    "staffId": "AMC/ACC/ALI/032",
+    "name": "EVELYN NANKANI",
+    "position": "DIET COOK",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/035",
+    "staffId": "AMC/ACC/ALI/035",
+    "name": "SEBASTIAN SEBIN",
+    "position": "RADIOGRAPHER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ALI/036",
+    "staffId": "AMC/ACC/ALI/036",
+    "name": "LUTHER KPAKPA QUARTEY",
+    "position": "MED PHLEBOTOMIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AHT",
+    "department": {
+      "id": "AHT",
+      "code": "AHT",
+      "name": "ALLIED HEALTH"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/001",
+    "staffId": "AMC/ACC/ADM/001",
+    "name": "MOSES CLOCUH",
+    "position": "HEALTH SERVICE ADMINISTRATOR",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/005",
+    "staffId": "AMC/ACC/ADM/005",
+    "name": "PRISCILLA SACKEY",
+    "position": "ADMINISTRATIVE  ASSISTANT - FRONT DESK",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/006",
+    "staffId": "AMC/ACC/ADM/006",
+    "name": "ELLEN EKEWORM",
+    "position": "ADMINISTRATIVE  ASSISTANT - FRONT DESK",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/017",
+    "staffId": "AMC/ACC/ADM/017",
+    "name": "MICHAEL ANKOMAH",
+    "position": "BILLING & CLAIMS OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/019",
+    "staffId": "AMC/ACC/ADM/019",
+    "name": "NUELLA ANYELEY ODONKOR",
+    "position": "BILLING & CLAIMS OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/023",
+    "staffId": "AMC/ACC/ADM/023",
+    "name": "THELMA  AKUSHIKA NUTAKOR",
+    "position": "MEDICAL CO-ORDINATOR",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/026",
+    "staffId": "AMC/ACC/ADM/026",
+    "name": "HONORE TASSI FOLLY KOUASSI",
+    "position": "MAINTENANCE ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/029",
+    "staffId": "AMC/ACC/ADM/029",
+    "name": "JOSEPHINE AFIA SOLEY",
+    "position": "ACCOUNTING ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/031",
+    "staffId": "AMC/ACC/ADM/031",
+    "name": "BRIDGET ABRA MORTEY",
+    "position": "CLIENT SERVICE ASSOCIATE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/032",
+    "staffId": "AMC/ACC/ADM/032",
+    "name": "ELIZABETH SENA NYADROH",
+    "position": "ACCOUNTS ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/035",
+    "staffId": "AMC/ACC/ADM/035",
+    "name": "REBECCA OHUI MACCARTHY",
+    "position": "CLIENT SERVICE EXECUTIVE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/036",
+    "staffId": "AMC/ACC/ADM/036",
+    "name": "CHRISTOPHER ODEI",
+    "position": "HUMAN RESOURCE OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/038",
+    "staffId": "AMC/ACC/ADM/038",
+    "name": "VALERIE AMEXO",
+    "position": "CLIENT SERVICE EXECUTIVE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/039",
+    "staffId": "AMC/ACC/ADM/039",
+    "name": "RITA POKUA BOAKYE",
+    "position": "CLIENT SERVICE EXECUTIVE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/041",
+    "staffId": "AMC/ACC/ADM/041",
+    "name": "GLORIA AMENUKU",
+    "position": "PROCUREMENT OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/042",
+    "staffId": "AMC/ACC/ADM/042",
+    "name": "ROSELINE GADAGOE",
+    "position": "CLIENT SERVICE EXECUTIVE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/043",
+    "staffId": "AMC/ACC/ADM/043",
+    "name": "GERTRUDE EXORNAM AGBEGOE",
+    "position": "ACCOUNTS ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/044",
+    "staffId": "AMC/ACC/ADM/044",
+    "name": "EUNICE AKORFA TOGOH",
+    "position": "ACCOUNTING MANAGER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/045",
+    "staffId": "AMC/ACC/ADM/045",
+    "name": "JOSEPH FOSU ESSEL",
+    "position": "SYSTEMS & IT OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/047",
+    "staffId": "AMC/ACC/ADM/047",
+    "name": "STANLEY QUARTEY",
+    "position": "BUSINESS DEVELOPMENT & SALES",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/048",
+    "staffId": "AMC/ACC/ADM/048",
+    "name": "SINARE RAJI",
+    "position": "ACCOUNTS ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/050",
+    "staffId": "AMC/ACC/ADM/050",
+    "name": "SARAH AMONORKIE AMANATEY",
+    "position": "CLIENT SERVICE EXECUTIVE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/051",
+    "staffId": "AMC/ACC/ADM/051",
+    "name": "DENNIS HORSEY",
+    "position": "ACCOUNTS ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/052",
+    "staffId": "AMC/ACC/ADM/052",
+    "name": "MARY OSAAH OWUSU",
+    "position": "CLIENT SERVICE EXECUTIVE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/053",
+    "staffId": "AMC/ACC/ADM/053",
+    "name": "DORIS APPIAH EWUSI",
+    "position": "QUALITY ASSURANCE & LEARNING & DEV'T HEAD",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/054",
+    "staffId": "AMC/ACC/ADM/054",
+    "name": "NOBLE ELIKPLIM OPARE",
+    "position": "SENIOR BUSINESS DEV'T & SALES OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/055",
+    "staffId": "AMC/ACC/ADM/055",
+    "name": "SHEFALI BHADAURIA",
+    "position": "OPERATIONAL COMP & EXCELLENCE MANEGER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/056",
+    "staffId": "AMC/ACC/ADM/056",
+    "name": "VIVIAN RENNER",
+    "position": "BIOMEDICAL ENGINEER SENIOR FIELD OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/057",
+    "staffId": "AMC/ACC/ADM/057",
+    "name": "ADRIANA BRENDA ADOM",
+    "position": "CLIENT SERVICE EXECUTIVE",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/058",
+    "staffId": "AMC/ACC/ADM/058",
+    "name": "ALFRED MENSAH",
+    "position": "ACCOUNTS ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/060",
+    "staffId": "AMC/ACC/ADM/060",
+    "name": "RICHARD MORTEY",
+    "position": "FACILITIES MANAGEMENT ASSISTANT - BIOMEDICAL",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/061",
+    "staffId": "AMC/ACC/ADM/061",
+    "name": "JOHN AGBENYENYAH",
+    "position": "FACILITIES MANAGEMENT ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/062",
+    "staffId": "AMC/ACC/ADM/062",
+    "name": "EMMANUEL KWESI OWUSU",
+    "position": "STORE OFFICER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/ADM/063",
+    "staffId": "AMC/ACC/ADM/063",
+    "name": "ENOCK YEBOAH",
+    "position": "STORE ASSITANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "ADM",
+    "department": {
+      "id": "ADM",
+      "code": "ADM",
+      "name": "ADMIN"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/003",
+    "staffId": "AMC/ACC/AUX/003",
+    "name": "FRANCIS BISSUE",
+    "position": "OFFICE ASSISTANT - LOGISTICS",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/005",
+    "staffId": "AMC/ACC/AUX/005",
+    "name": "GRACE APPIAH",
+    "position": "CATERER'S ASSISTANT",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/006",
+    "staffId": "AMC/ACC/AUX/006",
+    "name": "OPPONG, THERESA",
+    "position": "CATERER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/008",
+    "staffId": "AMC/ACC/AUX/008",
+    "name": "JONATHAN CALEB KOTEY",
+    "position": "SECURITY GUARD",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/009",
+    "staffId": "AMC/ACC/AUX/009",
+    "name": "JOSEPH  BONDZIE AIDOO",
+    "position": "SECURITY GUARD",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/011",
+    "staffId": "AMC/ACC/AUX/011",
+    "name": "PATRICK DAMPSON",
+    "position": "SECURITY GUARD",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/012",
+    "staffId": "AMC/ACC/AUX/012",
+    "name": "MOHAMMED AHMED",
+    "position": "SECURITY GUARD",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/013",
+    "staffId": "AMC/ACC/AUX/013",
+    "name": "TIMOTHY DARBAH",
+    "position": "SECURITY GUARD SUPERVISOR",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/014",
+    "staffId": "AMC/ACC/AUX/014",
+    "name": "ABIGAIL AKU ADOTEY-NYANU",
+    "position": "CATERER",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/015",
+    "staffId": "AMC/ACC/AUX/015",
+    "name": "JOSEPH SACKEY",
+    "position": "SECURITY GUARD",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/016",
+    "staffId": "AMC/ACC/AUX/016",
+    "name": "ISHAQUE OBIRI-ASAMOAH",
+    "position": "OFFICE ASSISTANT - TRANSPORT & LOGISTICS",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/017",
+    "staffId": "AMC/ACC/AUX/017",
+    "name": "EMMANUEL ASANTE",
+    "position": "OFFICE ASSISTANT - TRANSPORT & LOGISTICS",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/018",
+    "staffId": "AMC/ACC/AUX/018",
+    "name": "MICHAEL ATSYOR",
+    "position": "SECURITY GUARD",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/019",
+    "staffId": "AMC/ACC/AUX/019",
+    "name": "ALBERT KOOMSON",
+    "position": "SECURITY GUARD",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/AUX/020",
+    "staffId": "AMC/ACC/AUX/020",
+    "name": "ALEXANDER KOOMSON",
+    "position": "SECURITY GUARD",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "AUX",
+    "department": {
+      "id": "AUX",
+      "code": "AUX",
+      "name": "AUXILIARY"
+    }
+  },
+  {
+    "id": "AMC/ACC/PHA/001",
+    "staffId": "AMC/ACC/PHA/001",
+    "name": "DOROTHY ASARE",
+    "position": "PHARMACY - MCA",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "PHM",
+    "department": {
+      "id": "PHM",
+      "code": "PHM",
+      "name": "PHARMACY"
+    }
+  },
+  {
+    "id": "AMC/ACC/PHA/002",
+    "staffId": "AMC/ACC/PHA/002",
+    "name": "JOSEPHINE ODURO",
+    "position": "PHARMACY - MCA",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "PHM",
+    "department": {
+      "id": "PHM",
+      "code": "PHM",
+      "name": "PHARMACY"
+    }
+  },
+  {
+    "id": "AMC/ACC/PHA/004",
+    "staffId": "AMC/ACC/PHA/004",
+    "name": "MARRIETE ABU SARPONG",
+    "position": "SENIOR PHARMACIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "PHM",
+    "department": {
+      "id": "PHM",
+      "code": "PHM",
+      "name": "PHARMACY"
+    }
+  },
+  {
+    "id": "AMC/ACC/PHA/006",
+    "staffId": "AMC/ACC/PHA/006",
+    "name": "PHOEBE EYRAM TIAH",
+    "position": "PHARMACY - TECHNICIAN",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "PHM",
+    "department": {
+      "id": "PHM",
+      "code": "PHM",
+      "name": "PHARMACY"
+    }
+  },
+  {
+    "id": "AMC/ACC/PHA/007",
+    "staffId": "AMC/ACC/PHA/007",
+    "name": "ANDREWS BOAMPONG BOAKYE",
+    "position": "PHARMACY - TECHNICIAN",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "PHM",
+    "department": {
+      "id": "PHM",
+      "code": "PHM",
+      "name": "PHARMACY"
+    }
+  },
+  {
+    "id": "AMC/ACC/PHA/008",
+    "staffId": "AMC/ACC/PHA/008",
+    "name": "SIMEON BOAKYE YIADOM",
+    "position": "PHARMACY - TECHNICIAN",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "PHM",
+    "department": {
+      "id": "PHM",
+      "code": "PHM",
+      "name": "PHARMACY"
+    }
+  },
+  {
+    "id": "AMC/ACC/PHA/009",
+    "staffId": "AMC/ACC/PHA/009",
+    "name": "YEBOAH, MABEL AMPOFOA",
+    "position": "D-PHARMACIST",
+    "employeeType": "PERMANENT",
+    "status": "ACTIVE",
+    "location": "ACCRA",
+    "departmentId": "PHM",
+    "department": {
+      "id": "PHM",
+      "code": "PHM",
+      "name": "PHARMACY"
+    }
+  }
+]
