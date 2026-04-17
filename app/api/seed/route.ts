@@ -7,7 +7,7 @@ import path from 'path'
 
 export async function POST() {
   const pool = new Pool({
-    connectionString: process.env.DATABASE_URL!,
+    connectionString: process.env.POSTGRES_PRISMA_URL ?? process.env.DATABASE_URL!,
     ssl: { rejectUnauthorized: false },
   })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
