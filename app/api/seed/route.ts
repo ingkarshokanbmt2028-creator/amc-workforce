@@ -19,12 +19,17 @@ export async function POST() {
   const prisma = new PrismaClient({ adapter })
 
   try {
-    // Run migration SQL directly
+    // Run migration SQL directly — ignore "already exists" errors
     const migrationSQL = readFileSync(
       path.join(process.cwd(), 'prisma/migrations/0001_init/migration.sql'),
       'utf-8'
     )
-    await pool.query(migrationSQL)
+    try {
+      await pool.query(migrationSQL)
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : String(e)
+      if (!msg.includes('already exists')) throw e
+    }
 
     const existing = await prisma.department.count()
     if (existing > 0) {
