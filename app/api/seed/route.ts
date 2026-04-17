@@ -3,6 +3,7 @@ import { PrismaClient } from '@/app/generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { Pool } from 'pg'
 import { execSync } from 'child_process'
+import path from 'path'
 
 // One-time setup endpoint — creates tables and seeds data if DB is empty
 export async function POST() {
@@ -14,9 +15,11 @@ export async function POST() {
   const adapter = new PrismaPg(pool as any)
   const prisma = new PrismaClient({ adapter })
 
+  const bin = path.join(process.cwd(), 'node_modules', '.bin')
+
   try {
-    // Push schema first (creates tables if they don't exist)
-    execSync('npx prisma db push --skip-generate', {
+    // Run migrations to create tables
+    execSync(`${bin}/prisma migrate deploy`, {
       env: { ...process.env },
       stdio: 'pipe',
       cwd: process.cwd(),
@@ -29,7 +32,7 @@ export async function POST() {
     }
 
     // Seed data
-    execSync('npx tsx prisma/seed.ts', {
+    execSync(`${bin}/tsx prisma/seed.ts`, {
       env: { ...process.env },
       stdio: 'pipe',
       cwd: process.cwd(),
