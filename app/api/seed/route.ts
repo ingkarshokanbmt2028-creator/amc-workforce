@@ -1,3 +1,7 @@
+/* eslint-disable @typescript-eslint/no-require-imports */
+// Required to bypass Supabase self-signed cert in serverless environment
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@/app/generated/prisma/client'
 import { PrismaPg } from '@prisma/adapter-pg'
