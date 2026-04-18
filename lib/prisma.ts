@@ -6,6 +6,8 @@ function createPrismaClient() {
   const pool = new Pool({
     connectionString: (process.env.POSTGRES_PRISMA_URL ?? process.env.DATABASE_URL ?? '').replace('pgbouncer=true', '').replace('?&', '?').replace('&&', '&').replace(/[?&]$/, ''),
     ssl: { rejectUnauthorized: false },
+    connectionTimeoutMillis: 5000,
+    idleTimeoutMillis: 10000,
   })
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adapter = new PrismaPg(pool as any)
