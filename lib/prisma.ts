@@ -4,7 +4,7 @@ import { Pool } from 'pg'
 
 function createPrismaClient() {
   const pool = new Pool({
-    connectionString: (process.env.POSTGRES_PRISMA_URL ?? process.env.DATABASE_URL ?? '').replace('pgbouncer=true', '').replace('?&', '?').replace('&&', '&').replace(/[?&]$/, ''),
+    connectionString: (process.env.POSTGRES_PRISMA_URL ?? process.env.DATABASE_URL ?? '').replace('pgbouncer=true', '').replace('sslmode=require', '').replace('?&', '?').replace('&&', '&').replace(/[?&]$/, ''),
     ssl: { rejectUnauthorized: false },
     connectionTimeoutMillis: 5000,
     idleTimeoutMillis: 10000,
