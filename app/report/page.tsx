@@ -11,6 +11,9 @@ interface DeptStat {
   attendanceRate: number
   hoursWorked: number; overtimeHours: number; plannedHours: number
   annualLeaveDays: number; sickLeaveDays: number; maternityLeaveDays: number
+  scheduledCount: number
+  adheredCount: number
+  scheduleAdherenceRate: number
 }
 
 interface ReportData {
@@ -22,6 +25,10 @@ interface ReportData {
     totalPresent: number; totalAbsent: number; totalOnLeave: number; totalLate: number
     totalAnnualLeaveDays: number; totalSickLeaveDays: number
     topPerformingDept: string; lowestAttendanceDept: string; highestOvertimeDept: string
+    overallAdherenceRate: number
+    totalScheduled: number
+    totalAdhered: number
+    lowestAdherenceDept: string
   }
   departments: DeptStat[]
 }
@@ -44,7 +51,12 @@ A total of ${s.totalHoursWorked.toLocaleString()} hours were worked across the h
 
 Leave utilisation this month comprised ${s.totalAnnualLeaveDays} annual leave days and ${s.totalSickLeaveDays} sick leave days. The hospital currently employs ${s.locumStaff} locum staff to support cover across departments.
 
-Management attention is recommended for departments with attendance rates below 80%, high sick-leave clustering, and extended overtime patterns which may indicate staff burnout or resource gaps.`
+Management attention is recommended for departments with attendance rates below 80%, high sick-leave clustering, and extended overtime patterns which may indicate staff burnout or resource gaps.
+
+${(() => {
+  const adherenceDesc = s.overallAdherenceRate >= 90 ? 'strong' : s.overallAdherenceRate >= 75 ? 'moderate' : 'below target'
+  return `Schedule adherence for ${mon} ${yr} stands at ${s.overallAdherenceRate}%, which is ${adherenceDesc}. Out of ${s.totalScheduled} scheduled working shifts, ${s.totalAdhered} were fulfilled with a recorded clock-in. ${s.lowestAdherenceDept} recorded the lowest schedule adherence this month and is recommended for immediate departmental review.`
+})()}`
 }
 
 export default function ReportPage() {
@@ -159,12 +171,13 @@ export default function ReportPage() {
           </div>
 
           {/* Summary KPI strip */}
-          <div className="grid grid-cols-4 gap-4" style={{ fontFamily: 'Arial, sans-serif' }}>
+          <div className="grid grid-cols-5 gap-4" style={{ fontFamily: 'Arial, sans-serif' }}>
             {[
               { label: 'Active Staff', value: s!.totalActiveStaff },
               { label: 'Attendance Rate', value: `${s!.overallAttendanceRate}%` },
               { label: 'Hours Worked', value: s!.totalHoursWorked.toLocaleString() },
               { label: 'Overtime Hours', value: s!.totalOvertimeHours.toLocaleString() },
+              { label: 'Schedule Adherence', value: `${s!.overallAdherenceRate}%` },
             ].map(k => (
               <div key={k.label} className="border border-gray-200 rounded-lg p-4 text-center bg-gray-50">
                 <div className="text-2xl font-bold text-gray-900">{k.value}</div>
@@ -265,6 +278,34 @@ export default function ReportPage() {
                       <td className="border border-gray-200 px-2 py-1.5 text-right">{d.overtimeHours.toLocaleString()}</td>
                       <td className="border border-gray-200 px-2 py-1.5 text-center">{d.annualLeaveDays}</td>
                       <td className="border border-gray-200 px-2 py-1.5 text-center">{d.sickLeaveDays}</td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Schedule Adherence by Department */}
+          <div style={{ fontFamily: 'Arial, sans-serif' }}>
+            <h2 className="text-lg font-bold mb-3 border-b border-gray-300 pb-2">Schedule Adherence by Department</h2>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  {['Department', 'Scheduled Shifts', 'Fulfilled', 'Adherence Rate'].map(h => (
+                    <th key={h} className="border border-gray-200 px-2 py-2 text-left font-semibold text-gray-700">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.departments
+                  .sort((a, b) => b.scheduleAdherenceRate - a.scheduleAdherenceRate)
+                  .map((d, i) => (
+                    <tr key={d.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="border border-gray-200 px-2 py-1.5 font-medium">{d.name}</td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-center">{d.scheduledCount}</td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-center">{d.adheredCount}</td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-center font-bold" style={{ color: d.scheduleAdherenceRate >= 90 ? '#16a34a' : d.scheduleAdherenceRate >= 75 ? '#d97706' : '#dc2626' }}>
+                        {d.scheduleAdherenceRate}%
+                      </td>
                     </tr>
                   ))}
               </tbody>

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { SHIFT_HOURS } from '@/lib/shifts'
 
+const WORKING_SHIFTS_SET = new Set(['MORNING','AFTERNOON','DAY','PM_SHIFT','NIGHT','LATE','ON_CALL'])
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const month = parseInt(searchParams.get('month') ?? String(new Date().getMonth() + 1))
@@ -27,7 +29,7 @@ export async function GET(req: NextRequest) {
       }),
       prisma.attendance.findMany({
         where: { date: { gte: monthStart, lte: monthEnd } },
-        select: { employeeId: true, date: true, status: true, totalHours: true, lateMinutes: true },
+        select: { employeeId: true, date: true, status: true, totalHours: true, lateMinutes: true, clockIn: true },
       }),
     ])
   } catch { /* DB unavailable — return empty report */ }
@@ -76,6 +78,17 @@ export async function GET(req: NextRequest) {
     const sickLeaveDays      = deptSlots.filter(s => s.shiftType === 'SICK_LEAVE').length
     const maternityLeaveDays = deptSlots.filter(s => s.shiftType === 'MATERNITY_LEAVE').length
 
+    // Schedule adherence: of working shifts rostered, how many had actual clock-in
+    const deptSlotsFull = allSlots.filter(s => deptEmpIds.has(s.employeeId) && WORKING_SHIFTS_SET.has(s.shiftType))
+    const scheduledCount = deptSlotsFull.length
+    const deptAttMap = new Map(deptAttendance.map(a => [`${a.employeeId}_${new Date(a.date as unknown as Date).toISOString().slice(0,10)}`, a]))
+    const adheredCount = deptSlotsFull.filter(s => {
+      const key = `${s.employeeId}_${new Date(s.date as unknown as Date).toISOString().slice(0,10)}`
+      const att = deptAttMap.get(key)
+      return att && att.clockIn
+    }).length
+    const scheduleAdherenceRate = scheduledCount > 0 ? Math.round((adheredCount / scheduledCount) * 100) : 0
+
     return {
       id: dept.id, name: dept.name, code: dept.code,
       totalStaff: deptEmps.length,
@@ -86,6 +99,7 @@ export async function GET(req: NextRequest) {
       overtimeHours: Math.round(overtimeHrs * 10) / 10,
       plannedHours,
       annualLeaveDays, sickLeaveDays, maternityLeaveDays,
+      scheduledCount, adheredCount, scheduleAdherenceRate,
     }
   }).filter(d => d.totalStaff > 0)
 
@@ -105,6 +119,11 @@ export async function GET(req: NextRequest) {
   const bottomDept       = rankedDepts[rankedDepts.length - 1]?.name ?? '—'
   const topOvertimeDept  = [...deptStats].sort((a, b) => b.overtimeHours - a.overtimeHours)[0]?.name ?? '—'
 
+  const totalScheduled = deptStats.reduce((s, d) => s + d.scheduledCount, 0)
+  const totalAdhered   = deptStats.reduce((s, d) => s + d.adheredCount, 0)
+  const overallAdherenceRate = totalScheduled > 0 ? Math.round((totalAdhered / totalScheduled) * 100) : 0
+  const lowestAdherenceDept = [...deptStats].filter(d => d.scheduledCount > 0).sort((a,b) => a.scheduleAdherenceRate - b.scheduleAdherenceRate)[0]?.name ?? '—'
+
   return NextResponse.json({
     month, year,
     generatedAt: new Date().toISOString(),
@@ -122,6 +141,10 @@ export async function GET(req: NextRequest) {
       topPerformingDept: topDept,
       lowestAttendanceDept: bottomDept,
       highestOvertimeDept: topOvertimeDept,
+      overallAdherenceRate,
+      totalScheduled,
+      totalAdhered,
+      lowestAdherenceDept,
     },
     departments: deptStats,
   })

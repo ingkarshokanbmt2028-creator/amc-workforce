@@ -273,6 +273,22 @@ export default function CompliancePage() {
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [departments, setDepartments] = useState<Department[]>([])
   const [sortBy, setSortBy]   = useState<'rate_asc' | 'rate_desc' | 'name' | 'noshows'>('rate_asc')
+  const [notifying, setNotifying] = useState(false)
+
+  async function handleNotifyHR() {
+    setNotifying(true)
+    try {
+      const res = await fetch('/api/notify/compliance', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ month, year }),
+      })
+      const json = await res.json()
+      if (res.ok) alert(`Email sent to HR: ${json.message}`)
+      else alert(`Failed: ${json.error}`)
+    } catch { alert('Failed to send notification') }
+    finally { setNotifying(false) }
+  }
 
   useEffect(() => {
     fetch('/api/departments').then(r => r.json()).then(setDepartments)
@@ -330,21 +346,33 @@ export default function CompliancePage() {
       {/* Header */}
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Roster Compliance</h1>
+          <h1 className="text-2xl font-bold text-white">Shift Adherence</h1>
           <p className="text-sm text-white/40 mt-0.5">
             Compare each employee's actual attendance against what the rota required
           </p>
         </div>
-        <button
-          onClick={fetchCompliance}
-          disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.04] disabled:opacity-40 transition-colors"
-        >
-          <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleNotifyHR}
+            disabled={notifying}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 disabled:opacity-50 transition-colors"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+            </svg>
+            {notifying ? 'Sending…' : 'Notify HR'}
+          </button>
+          <button
+            onClick={fetchCompliance}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.04] disabled:opacity-40 transition-colors"
+          >
+            <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Month + Year selector */}
