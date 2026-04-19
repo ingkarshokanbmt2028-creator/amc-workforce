@@ -3,9 +3,12 @@
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth, ROLE_LABELS } from '@/lib/auth'
-import { LogOut } from 'lucide-react'
+import { LogOut, ChevronDown } from 'lucide-react'
+import { useState, useEffect } from 'react'
 
-const NAV = [
+interface Department { id: string; name: string; code: string }
+
+const NAV_TOP = [
   { href: '/', label: 'Home', icon: (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
@@ -21,11 +24,19 @@ const NAV = [
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
     </svg>
   )},
-  { href: '/departments', label: 'Departments', icon: (
+  { href: '/schedule', label: 'Schedule', icon: (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
     </svg>
   )},
+  { href: '/attendance/compliance', label: 'Compliance', icon: (
+    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+  )},
+]
+
+const NAV_BOTTOM = [
   { href: '/report', label: 'CEO Report', icon: (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -49,10 +60,44 @@ const NAV = [
   )},
 ]
 
+function NavLink({ href, label, icon, path }: { href: string; label: string; icon: React.ReactNode; path: string }) {
+  const active = href === '/'
+    ? path === '/'
+    : path === href || (path.startsWith(href + '/') && href !== '/attendance')
+  return (
+    <Link
+      href={href}
+      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+        active
+          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+          : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
+      }`}
+    >
+      <span className={active ? 'text-amber-400' : ''}>{icon}</span>
+      {label}
+    </Link>
+  )
+}
+
 export function Sidebar() {
   const path   = usePathname()
   const router = useRouter()
   const { user, role, signOut } = useAuth()
+
+  const [deptOpen, setDeptOpen]       = useState(false)
+  const [departments, setDepartments] = useState<Department[]>([])
+
+  // Open dept dropdown automatically when on /departments
+  useEffect(() => {
+    if (path.startsWith('/departments')) setDeptOpen(true)
+  }, [path])
+
+  // Lazy-load departments when dropdown first opens
+  useEffect(() => {
+    if (deptOpen && departments.length === 0) {
+      fetch('/api/departments').then(r => r.json()).then(setDepartments)
+    }
+  }, [deptOpen, departments.length])
 
   if (path === '/login') return null
 
@@ -62,6 +107,8 @@ export function Sidebar() {
   }
 
   const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : 'AM'
+
+  const deptParentActive = path.startsWith('/departments')
 
   return (
     <aside className="w-56 flex-shrink-0 flex flex-col h-screen sticky top-0 bg-[#0f1117] border-r border-white/[0.06]">
@@ -76,23 +123,70 @@ export function Sidebar() {
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {NAV.map((n) => {
-          const active = n.href === '/' ? path === '/' : path.startsWith(n.href)
-          return (
-            <Link
-              key={n.href}
-              href={n.href}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                active
-                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                  : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
-              }`}
-            >
-              <span className={active ? 'text-amber-400' : ''}>{n.icon}</span>
-              {n.label}
-            </Link>
-          )
-        })}
+
+        {/* Top nav items */}
+        {NAV_TOP.map(n => <NavLink key={n.href} {...n} path={path} />)}
+
+        {/* Departments — expandable */}
+        <div>
+          <button
+            onClick={() => setDeptOpen(o => !o)}
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+              deptParentActive
+                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
+            }`}
+          >
+            <span className={deptParentActive ? 'text-amber-400' : ''}>
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            </span>
+            <span className="flex-1 text-left">Departments</span>
+            <ChevronDown className={`w-3.5 h-3.5 transition-transform opacity-50 ${deptOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {deptOpen && (
+            <div className="mt-0.5 ml-3 pl-3 border-l border-white/[0.06] space-y-0.5">
+              {/* All departments link */}
+              <Link
+                href="/departments"
+                className={`flex items-center gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  path === '/departments' && !path.includes('?')
+                    ? 'text-amber-400 bg-amber-500/5'
+                    : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'
+                }`}
+              >
+                All staff
+              </Link>
+
+              {departments.length === 0 ? (
+                <p className="px-2 py-1.5 text-xs text-white/20">Loading…</p>
+              ) : (
+                departments.map(d => {
+                  const active = path === `/departments` && typeof window !== 'undefined' && new URLSearchParams(window.location.search).get('dept') === d.id
+                  return (
+                    <Link
+                      key={d.id}
+                      href={`/departments?dept=${d.id}`}
+                      className={`flex items-center justify-between gap-2 px-2 py-1.5 rounded-md text-xs font-medium transition-all ${
+                        active
+                          ? 'text-amber-400 bg-amber-500/5'
+                          : 'text-white/40 hover:text-white/70 hover:bg-white/[0.03]'
+                      }`}
+                    >
+                      <span className="truncate">{d.name}</span>
+                      <span className="text-[10px] text-white/20 flex-shrink-0">{d.code}</span>
+                    </Link>
+                  )
+                })
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Bottom nav items */}
+        {NAV_BOTTOM.map(n => <NavLink key={n.href} {...n} path={path} />)}
       </nav>
 
       {/* User footer */}

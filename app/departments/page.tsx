@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Users, Search, ChevronDown } from 'lucide-react'
 
 interface Employee {
@@ -18,7 +19,8 @@ interface Department {
   code: string
 }
 
-export default function DepartmentsPage() {
+function DepartmentsPageInner() {
+  const searchParams = useSearchParams()
   const [departments, setDepartments] = useState<Department[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
   const [activeDept, setActiveDept] = useState<string>('ALL')
@@ -33,10 +35,19 @@ export default function DepartmentsPage() {
     ]).then(([depts, emps]) => {
       setDepartments(depts)
       setEmployees(emps)
-      if (depts.length > 0) setActiveDept('ALL')
       setLoading(false)
     })
   }, [])
+
+  // Sync active dept from URL param
+  useEffect(() => {
+    const deptParam = searchParams.get('dept')
+    if (deptParam) {
+      setActiveDept(deptParam)
+    } else {
+      setActiveDept('ALL')
+    }
+  }, [searchParams])
 
   const filtered = employees.filter(e => {
     const matchDept = activeDept === 'ALL' || e.departmentId === activeDept
@@ -82,35 +93,18 @@ export default function DepartmentsPage() {
         />
       </div>
 
-      {/* Department tabs */}
-      <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={() => setActiveDept('ALL')}
-          className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-            activeDept === 'ALL'
-              ? 'bg-amber-500 text-black'
-              : 'bg-white/[0.04] text-white/50 hover:text-white/80 hover:bg-white/[0.06]'
-          }`}
-        >
-          All ({employees.length})
-        </button>
+      {/* Department dropdown */}
+      <select
+        value={activeDept}
+        onChange={e => setActiveDept(e.target.value)}
+        className="rounded-lg border border-white/10 bg-white/[0.04] text-sm text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-amber-500/50 min-w-[220px]"
+      >
+        <option value="ALL">All Departments · {employees.length}</option>
         {departments.map(d => {
           const count = employees.filter(e => e.departmentId === d.id).length
-          return (
-            <button
-              key={d.id}
-              onClick={() => setActiveDept(d.id)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
-                activeDept === d.id
-                  ? 'bg-amber-500 text-black'
-                  : 'bg-white/[0.04] text-white/50 hover:text-white/80 hover:bg-white/[0.06]'
-              }`}
-            >
-              {d.code} ({count})
-            </button>
-          )
+          return <option key={d.id} value={d.id}>{d.name} · {count}</option>
         })}
-      </div>
+      </select>
 
       {/* Content */}
       {loading ? (
@@ -168,6 +162,14 @@ export default function DepartmentsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function DepartmentsPage() {
+  return (
+    <Suspense>
+      <DepartmentsPageInner />
+    </Suspense>
   )
 }
 
