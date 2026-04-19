@@ -61,7 +61,27 @@ function AttStatus({ rec }: { rec: AttRecord }) {
 
 // ── Employee row (Osiyo pattern adapted) ─────────────────────────────────────
 
-function EmployeeRow({ emp, rec, onClick }: { emp: Employee; rec: AttRecord | undefined; onClick: () => void }) {
+const SHIFT_BADGE: Record<string, string> = {
+  MORNING:        'bg-amber-500/15 text-amber-300',
+  AFTERNOON:      'bg-orange-500/15 text-orange-300',
+  DAY:            'bg-sky-500/15 text-sky-300',
+  PM_SHIFT:       'bg-purple-500/15 text-purple-300',
+  NIGHT:          'bg-indigo-500/15 text-indigo-300',
+  LATE:           'bg-rose-500/15 text-rose-300',
+  ON_CALL:        'bg-teal-500/15 text-teal-300',
+  OFF:            'bg-white/5 text-white/30',
+  ANNUAL_LEAVE:   'bg-green-500/15 text-green-300',
+  MATERNITY_LEAVE:'bg-pink-500/15 text-pink-300',
+  SICK_LEAVE:     'bg-red-500/15 text-red-300',
+}
+
+const SHIFT_SHORT: Record<string, string> = {
+  MORNING: 'MOR', AFTERNOON: 'AFT', DAY: 'DAY', PM_SHIFT: 'PMS',
+  NIGHT: 'NGT', LATE: 'LTE', ON_CALL: 'ONC', OFF: 'OFF',
+  ANNUAL_LEAVE: 'AL', MATERNITY_LEAVE: 'ML', SICK_LEAVE: 'SL',
+}
+
+function EmployeeRow({ emp, rec, scheduledShift, onClick }: { emp: Employee; rec: AttRecord | undefined; scheduledShift?: string; onClick: () => void }) {
   const hours = rec ? Math.max(0, rec.totalHours ?? 0) : 0
 
   return (
@@ -85,8 +105,16 @@ function EmployeeRow({ emp, rec, onClick }: { emp: Employee; rec: AttRecord | un
         </div>
       </div>
 
-      {/* Clock in/out */}
+      {/* Clock in/out + scheduled shift */}
       <div className="hidden md:flex items-center gap-6 flex-shrink-0">
+        {scheduledShift && (
+          <div className="text-center min-w-[44px]">
+            <p className="text-[10px] text-white/30">Roster</p>
+            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${SHIFT_BADGE[scheduledShift] ?? 'bg-white/5 text-white/30'}`}>
+              {SHIFT_SHORT[scheduledShift] ?? scheduledShift}
+            </span>
+          </div>
+        )}
         <div className="text-center min-w-[56px]">
           <p className="text-[10px] text-white/30">Clock In</p>
           <p className={`text-xs font-mono font-semibold ${rec?.clockIn ? 'text-green-400' : 'text-white/20'}`}>
@@ -133,6 +161,7 @@ export default function AttendancePage() {
   const [search, setSearch] = useState('')
   const [detailEmp, setDetailEmp] = useState<Employee | null>(null)
   const [visibleCount, setVisibleCount] = useState(20)
+  const [rosterSlots, setRosterSlots] = useState<Record<string, string>>({}) // employeeId → shiftType
 
   const month = parseInt(date.slice(5, 7))
   const year  = parseInt(date.slice(0, 4))
@@ -157,6 +186,24 @@ export default function AttendancePage() {
   }, [date])
 
   useEffect(() => { fetchAttendance() }, [fetchAttendance])
+
+  // Fetch roster slots for the current date to show scheduled shifts
+  useEffect(() => {
+    fetch(`/api/roster?month=${month}&year=${year}`)
+      .then(r => r.ok ? r.json() : [])
+      .then((rosters: { slots: { employeeId: string; date: string; shiftType: string }[] }[]) => {
+        const map: Record<string, string> = {}
+        for (const roster of rosters) {
+          for (const slot of roster.slots) {
+            if (slot.date.slice(0, 10) === date) {
+              map[slot.employeeId] = slot.shiftType
+            }
+          }
+        }
+        setRosterSlots(map)
+      })
+      .catch(() => {})
+  }, [date, month, year])
 
   async function handleSync() {
     setSyncing(true)
@@ -266,28 +313,19 @@ export default function AttendancePage() {
         ))}
       </div>
 
-      {/* Department tabs */}
-      <div className="flex gap-2 flex-wrap">
-        <button
-          onClick={() => { setActiveDept('all'); setVisibleCount(20) }}
-          className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${activeDept === 'all' ? 'bg-white text-black border-white' : 'border-white/10 text-white/50 hover:text-white/80 hover:border-white/20'}`}
-        >
-          All · {employees.length}
-        </button>
+      {/* Department dropdown */}
+      <select
+        value={activeDept}
+        onChange={e => { setActiveDept(e.target.value); setVisibleCount(20) }}
+        className="rounded-lg border border-white/10 bg-white/[0.04] text-sm text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-white/20 min-w-[200px]"
+      >
+        <option value="all">All Departments · {employees.length}</option>
         {departments.map(d => {
           const count = employees.filter(e => e.departmentId === d.id).length
           if (count === 0) return null
-          return (
-            <button
-              key={d.id}
-              onClick={() => { setActiveDept(d.id); setVisibleCount(20) }}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all ${activeDept === d.id ? 'bg-white text-black border-white' : 'border-white/10 text-white/50 hover:text-white/80 hover:border-white/20'}`}
-            >
-              {d.name} · {count}
-            </button>
-          )
+          return <option key={d.id} value={d.id}>{d.name} · {count}</option>
         })}
-      </div>
+      </select>
 
       {/* Attendance filters (Osiyo's AttendanceFilters) */}
       <div className="flex items-center gap-2 flex-wrap">
@@ -339,6 +377,7 @@ export default function AttendancePage() {
             key={emp.id}
             emp={{ ...emp, department: deptById.get(emp.departmentId) }}
             rec={recByEmp.get(emp.id)}
+            scheduledShift={rosterSlots[emp.id]}
             onClick={() => setDetailEmp({ ...emp, department: deptById.get(emp.departmentId) })}
           />
         ))}

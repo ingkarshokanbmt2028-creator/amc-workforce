@@ -348,30 +348,20 @@ export default function RosterPage() {
         <span className="px-3 py-1.5 rounded-full bg-muted text-sm font-medium">{weekLabel}</span>
       </div>
 
-      {/* Department pills */}
-      <div className="flex flex-wrap gap-2 items-center">
-        <button
-          onClick={() => setActiveDeptId('ALL')}
-          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
-            activeDeptId === 'ALL' ? 'bg-foreground text-background border-foreground' : 'border-border hover:bg-muted'
-          }`}
+      {/* Department dropdown */}
+      <div className="flex items-center gap-3">
+        <select
+          value={activeDeptId}
+          onChange={e => setActiveDeptId(e.target.value)}
+          className="rounded-lg border border-border bg-background text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring min-w-[200px]"
         >
-          All Departments
-          <span className="opacity-70">{allEmployees.length}</span>
-        </button>
-        {departments.map(d => (
-          <button
-            key={d.id}
-            onClick={() => setActiveDeptId(d.id)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-colors ${
-              activeDeptId === d.id ? 'bg-foreground text-background border-foreground' : 'border-border hover:bg-muted'
-            }`}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
-            {d.name}
-            <span className="opacity-70">{countByDept.get(d.id) ?? 0}</span>
-          </button>
-        ))}
+          <option value="ALL">All Departments ({allEmployees.length})</option>
+          {departments.map(d => (
+            <option key={d.id} value={d.id}>
+              {d.name} ({countByDept.get(d.id) ?? 0})
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Search + count */}
