@@ -8,11 +8,16 @@ export async function GET(req: NextRequest) {
   const yearParam    = searchParams.get('year')
   const limit        = parseInt(searchParams.get('limit') ?? '500')
 
+  const fromParam = searchParams.get('from')
+  const toParam   = searchParams.get('to')
+
   try {
     const { prisma } = await import('@/lib/prisma')
 
     let dateFilter: Record<string, unknown>
-    if (monthParam && yearParam) {
+    if (fromParam && toParam) {
+      dateFilter = { date: { gte: new Date(fromParam), lte: new Date(toParam) } }
+    } else if (monthParam && yearParam) {
       const month = parseInt(monthParam)
       const year  = parseInt(yearParam)
       dateFilter = { date: { gte: new Date(year, month - 1, 1), lte: new Date(year, month, 0) } }

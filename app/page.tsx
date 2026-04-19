@@ -182,6 +182,8 @@ export default function Dashboard() {
   const [dateStr, setDateStr] = useState('')
   const [trendData, setTrendData] = useState<TrendPoint[]>([])
   const [deductions, setDeductions] = useState(0)
+  const [weekOffset, setWeekOffset] = useState(0) // 0 = this week, -1 = last week, etc.
+  const [trendLoading, setTrendLoading] = useState(false)
 
   useEffect(() => {
     const ds = new Date().toISOString().slice(0, 10)
@@ -246,32 +248,54 @@ export default function Dashboard() {
         })
       setOvertime(otRecs)
 
-      // Build 7-day attendance trend from month records
-      const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
-      const today = new Date()
-      const trend: TrendPoint[] = []
-      for (let i = 6; i >= 0; i--) {
-        const d = new Date(today)
-        d.setDate(today.getDate() - i)
-        const ds = d.toISOString().slice(0, 10)
-        const dayRecs = monthRecs.filter((a: any) => {
-          const rd = typeof a.date === 'string' ? a.date.slice(0, 10) : new Date(a.date).toISOString().slice(0, 10)
-          return rd === ds
-        })
-        trend.push({
-          day: DAY_LABELS[d.getDay()],
-          present: dayRecs.filter((a: any) => a.status === 'PRESENT' || a.status === 'LATE').length,
-          absent: dayRecs.filter((a: any) => a.status === 'ABSENT').length,
-          leave: dayRecs.filter((a: any) => a.status === 'ON_LEAVE').length,
-        })
-      }
-      setTrendData(trend)
+      // Trend data is loaded separately via weekOffset effect
 
       // Estimate deductions: absent days × avg daily rate (GH₵ 80 placeholder)
       const absentCount = monthRecs.filter((a: any) => a.status === 'ABSENT').length
       setDeductions(absentCount * 80)
     })
   }, [])
+
+  // Fetch trend data for selected week
+  useEffect(() => {
+    setTrendLoading(true)
+    const DAY_LABELS = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat']
+    const anchor = new Date()
+    anchor.setDate(anchor.getDate() + weekOffset * 7)
+    // Start of that week (Monday)
+    const dow = anchor.getDay()
+    const monday = new Date(anchor)
+    monday.setDate(anchor.getDate() - (dow === 0 ? 6 : dow - 1))
+    const sunday = new Date(monday)
+    sunday.setDate(monday.getDate() + 6)
+
+    const from = monday.toISOString().slice(0, 10)
+    const to   = sunday.toISOString().slice(0, 10)
+
+    fetch(`/api/attendance?from=${from}&to=${to}&limit=5000`)
+      .then(r => r.ok ? r.json() : { attendance: [] })
+      .then(({ attendance: recs }: { attendance: any[] }) => {
+        const trend: TrendPoint[] = []
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(monday)
+          d.setDate(monday.getDate() + i)
+          const ds = d.toISOString().slice(0, 10)
+          const dayRecs = recs.filter((a: any) => {
+            const rd = typeof a.date === 'string' ? a.date.slice(0, 10) : new Date(a.date).toISOString().slice(0, 10)
+            return rd === ds
+          })
+          trend.push({
+            day: DAY_LABELS[d.getDay()],
+            present: dayRecs.filter((a: any) => a.status === 'PRESENT' || a.status === 'LATE').length,
+            absent:  dayRecs.filter((a: any) => a.status === 'ABSENT').length,
+            leave:   dayRecs.filter((a: any) => a.status === 'ON_LEAVE').length,
+          })
+        }
+        setTrendData(trend)
+        setTrendLoading(false)
+      })
+      .catch(() => setTrendLoading(false))
+  }, [weekOffset])
 
   const statCards = [
     { label: 'Total Staff',    value: stats?.totalStaff ?? '—',    color: 'bg-blue-500/10 text-blue-300',    icon: '👥' },
@@ -342,8 +366,46 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* 7-day attendance trend */}
         <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-          <h2 className="font-semibold text-white mb-4 text-sm">7-Day Attendance Trend</h2>
-          {trendData.length > 0 ? (
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-semibold text-white text-sm">
+              {weekOffset === 0 ? 'This Week' : weekOffset === -1 ? 'Last Week' : `${Math.abs(weekOffset)} Weeks Ago`}
+            </h2>
+            <div className="flex items-center gap-1">
+              <button
+                onClick={() => setWeekOffset(w => w - 1)}
+                className="h-7 w-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <span className="text-xs text-white/30 px-1 min-w-[80px] text-center">
+                {(() => {
+                  const anchor = new Date()
+                  anchor.setDate(anchor.getDate() + weekOffset * 7)
+                  const dow = anchor.getDay()
+                  const monday = new Date(anchor)
+                  monday.setDate(anchor.getDate() - (dow === 0 ? 6 : dow - 1))
+                  const sunday = new Date(monday)
+                  sunday.setDate(monday.getDate() + 6)
+                  const fmt = (d: Date) => `${d.getDate()} ${d.toLocaleString('en', { month: 'short' })}`
+                  return `${fmt(monday)} – ${fmt(sunday)}`
+                })()}
+              </span>
+              <button
+                onClick={() => setWeekOffset(w => Math.min(0, w + 1))}
+                disabled={weekOffset === 0}
+                className="h-7 w-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
+          {trendLoading ? (
+            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">Loading…</div>
+          ) : trendData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
               <AreaChart data={trendData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
                 <defs>
@@ -375,7 +437,7 @@ export default function Dashboard() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">No attendance data yet</div>
+            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">No attendance data for this week</div>
           )}
         </div>
 
