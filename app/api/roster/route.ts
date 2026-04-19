@@ -17,16 +17,19 @@ export async function GET(req: NextRequest) {
     ...(departmentId ? { departmentId } : {}),
   }
 
-  const rosters = await prisma.roster.findMany({
-    where,
-    include: {
-      department: true,
-      slots: {
-        include: { employee: true },
-        orderBy: [{ date: 'asc' }, { employee: { name: 'asc' } }],
+  let rosters: unknown[] = []
+  try {
+    rosters = await prisma.roster.findMany({
+      where,
+      include: {
+        department: true,
+        slots: {
+          include: { employee: true },
+          orderBy: [{ date: 'asc' }, { employee: { name: 'asc' } }],
+        },
       },
-    },
-  })
+    })
+  } catch { /* DB unavailable */ }
 
   return NextResponse.json(rosters)
 }

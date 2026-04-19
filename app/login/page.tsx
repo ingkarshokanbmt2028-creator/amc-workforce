@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import {
@@ -29,15 +29,17 @@ export default function LoginPage() {
 
   const [submitting, setSubmitting] = useState(false)
 
-  if (loading) {
+  useEffect(() => {
+    if (!loading && user) router.replace('/')
+  }, [loading, user, router])
+
+  if (loading || user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <Loader2 className="h-8 w-8 animate-spin text-amber-400" />
       </div>
     )
   }
-
-  if (user) { router.replace('/'); return null }
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
