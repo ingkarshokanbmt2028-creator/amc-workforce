@@ -4,8 +4,8 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useAuth, ROLE_LABELS } from '@/lib/auth'
 import {
-  AreaChart, Area, BarChart, Bar,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 
 interface Stats {
@@ -338,10 +338,10 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      {/* Charts row — 3 columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* 7-day attendance trend */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+        <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
           <h2 className="font-semibold text-white mb-4 text-sm">7-Day Attendance Trend</h2>
           {trendData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
@@ -355,6 +355,10 @@ export default function Dashboard() {
                     <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
                     <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
                   </linearGradient>
+                  <linearGradient id="gLeave" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                  </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
                 <XAxis dataKey="day" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
@@ -364,41 +368,95 @@ export default function Dashboard() {
                   labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
                   itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
                 />
+                <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }} />
                 <Area type="monotone" dataKey="present" stroke="#f59e0b" strokeWidth={2} fill="url(#gPresent)" name="Present" />
-                <Area type="monotone" dataKey="absent" stroke="#ef4444" strokeWidth={1.5} fill="url(#gAbsent)" name="Absent" />
+                <Area type="monotone" dataKey="absent"  stroke="#ef4444" strokeWidth={1.5} fill="url(#gAbsent)" name="Absent" />
+                <Area type="monotone" dataKey="leave"   stroke="#3b82f6" strokeWidth={1.5} fill="url(#gLeave)"  name="On Leave" />
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">
-              No attendance data yet
-            </div>
+            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">No attendance data yet</div>
           )}
         </div>
 
-        {/* Department bar chart */}
+        {/* Attendance status pie */}
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-          <h2 className="font-semibold text-white mb-4 text-sm">Department Overview</h2>
-          {deptStats.length > 0 ? (
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={deptStats.slice(0, 8)} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="code" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={{ background: '#1a1d27', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
-                  itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
-                />
-                <Bar dataKey="total" fill="#f59e0b" fillOpacity={0.7} radius={[3, 3, 0, 0]} name="Total" />
-                <Bar dataKey="present" fill="#22c55e" fillOpacity={0.8} radius={[3, 3, 0, 0]} name="Present" />
-              </BarChart>
-            </ResponsiveContainer>
+          <h2 className="font-semibold text-white mb-4 text-sm">Today&apos;s Status</h2>
+          {stats ? (
+            <>
+              <ResponsiveContainer width="100%" height={140}>
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Present',  value: stats.presentToday,  color: '#22c55e' },
+                      { name: 'Absent',   value: stats.absentToday,   color: '#ef4444' },
+                      { name: 'On Leave', value: stats.onLeaveToday,  color: '#3b82f6' },
+                      { name: 'Late',     value: stats.lateToday,     color: '#f59e0b' },
+                    ].filter(d => d.value > 0)}
+                    cx="50%" cy="50%"
+                    innerRadius={40} outerRadius={60}
+                    paddingAngle={3}
+                    dataKey="value"
+                  >
+                    {[
+                      { name: 'Present',  value: stats.presentToday,  color: '#22c55e' },
+                      { name: 'Absent',   value: stats.absentToday,   color: '#ef4444' },
+                      { name: 'On Leave', value: stats.onLeaveToday,  color: '#3b82f6' },
+                      { name: 'Late',     value: stats.lateToday,     color: '#f59e0b' },
+                    ].filter(d => d.value > 0).map((entry, i) => (
+                      <Cell key={i} fill={entry.color} fillOpacity={0.85} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{ background: '#1a1d27', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
+                    itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div className="grid grid-cols-2 gap-1.5 mt-2">
+                {[
+                  { label: 'Present',  value: stats.presentToday,  color: '#22c55e' },
+                  { label: 'Absent',   value: stats.absentToday,   color: '#ef4444' },
+                  { label: 'On Leave', value: stats.onLeaveToday,  color: '#3b82f6' },
+                  { label: 'Late',     value: stats.lateToday,     color: '#f59e0b' },
+                ].map(s => (
+                  <div key={s.label} className="flex items-center gap-1.5">
+                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
+                    <span className="text-[11px] text-white/40">{s.label}</span>
+                    <span className="text-[11px] font-bold ml-auto" style={{ color: s.color }}>{s.value}</span>
+                  </div>
+                ))}
+              </div>
+            </>
           ) : (
-            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">
-              No department data yet
-            </div>
+            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">Loading…</div>
           )}
         </div>
+      </div>
+
+      {/* Department bar chart */}
+      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
+        <h2 className="font-semibold text-white mb-4 text-sm">Staff Count by Department</h2>
+        {deptStats.length > 0 ? (
+          <ResponsiveContainer width="100%" height={160}>
+            <BarChart data={deptStats} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
+              <XAxis dataKey="code" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
+              <Tooltip
+                contentStyle={{ background: '#1a1d27', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
+                labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
+                itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
+              />
+              <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }} />
+              <Bar dataKey="total"   fill="#f59e0b" fillOpacity={0.7} radius={[3,3,0,0]} name="Total" />
+              <Bar dataKey="present" fill="#22c55e" fillOpacity={0.8} radius={[3,3,0,0]} name="Present" />
+              <Bar dataKey="absent"  fill="#ef4444" fillOpacity={0.7} radius={[3,3,0,0]} name="Absent" />
+            </BarChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[160px] flex items-center justify-center text-white/20 text-sm">No department data yet</div>
+        )}
       </div>
 
       {/* Department overview */}
@@ -430,23 +488,58 @@ export default function Dashboard() {
       </div>
 
       {/* Quick links */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         {[
-          { href: '/roster',     label: 'Duty Roster',  desc: 'View & manage shift schedules',     icon: '📅' },
-          { href: '/attendance', label: 'Attendance',   desc: 'Track daily clock-in / clock-out',  icon: '🕐' },
-          { href: '/report',     label: 'CEO Report',   desc: 'Monthly performance PDF download',  icon: '📊' },
+          { href: '/roster',     label: 'Duty Roster',  desc: 'Manage shifts',          icon: '📅', color: 'border-amber-500/20 hover:bg-amber-500/5' },
+          { href: '/attendance', label: 'Attendance',   desc: 'Clock-in / out',          icon: '🕐', color: 'border-green-500/20 hover:bg-green-500/5' },
+          { href: '/schedule',   label: 'Schedule',     desc: 'Roster vs actual',        icon: '📋', color: 'border-sky-500/20 hover:bg-sky-500/5' },
+          { href: '/report',     label: 'CEO Report',   desc: 'Monthly performance',     icon: '📊', color: 'border-purple-500/20 hover:bg-purple-500/5' },
+          { href: '/departments',label: 'Departments',  desc: 'View all staff',          icon: '🏥', color: 'border-blue-500/20 hover:bg-blue-500/5' },
         ].map((l) => (
           <Link
             key={l.href}
             href={l.href}
-            className="rounded-xl border border-white/[0.06] p-5 flex flex-col gap-2 hover:bg-white/[0.03] hover:border-white/10 transition-all"
+            className={`rounded-xl border ${l.color} bg-white/[0.02] p-4 flex flex-col gap-2 transition-all`}
           >
             <span className="text-2xl">{l.icon}</span>
-            <span className="font-semibold text-white">{l.label}</span>
+            <span className="font-semibold text-white text-sm">{l.label}</span>
             <span className="text-xs text-white/40">{l.desc}</span>
           </Link>
         ))}
       </div>
+
+      {/* Department cards */}
+      {deptStats.length > 0 && (
+        <div>
+          <h2 className="font-semibold text-white text-sm mb-3">Departments</h2>
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+            {deptStats.map((d) => {
+              const pct   = d.total > 0 ? Math.round((d.present / d.total) * 100) : 0
+              const color = pct >= 85 ? '#22c55e' : pct >= 70 ? '#f59e0b' : '#ef4444'
+              const bgCol = pct >= 85 ? 'border-green-500/20' : pct >= 70 ? 'border-amber-500/20' : 'border-red-500/20'
+              return (
+                <Link
+                  key={d.id}
+                  href={`/departments?dept=${d.id}`}
+                  className={`rounded-xl border ${bgCol} bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-all`}
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-xs font-black text-white/50">
+                      {d.code}
+                    </div>
+                    <span className="text-xs font-bold" style={{ color }}>{pct}%</span>
+                  </div>
+                  <p className="text-xs font-semibold text-white truncate">{d.name}</p>
+                  <p className="text-[11px] text-white/30 mt-0.5">{d.total} staff</p>
+                  <div className="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
+                  </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
