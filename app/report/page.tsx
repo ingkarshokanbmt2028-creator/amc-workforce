@@ -6,9 +6,11 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 
 interface DeptStat {
   id: string; name: string; code: string
-  totalStaff: number; locumCount: number
+  totalStaff: number; locumCount: number; permanentCount: number
   present: number; absent: number; onLeave: number; late: number
   attendanceRate: number
+  punctualityRate: number; absenteeismRate: number; overtimeRate: number; restPeriodComplianceRate: number
+  licenseComplianceRate: number | null; locumCost: number; permanentCost: number
   hoursWorked: number; overtimeHours: number; plannedHours: number
   annualLeaveDays: number; sickLeaveDays: number; maternityLeaveDays: number
   scheduledCount: number
@@ -29,6 +31,18 @@ interface ReportData {
     totalScheduled: number
     totalAdhered: number
     lowestAdherenceDept: string
+    overallPunctualityRate: number
+    overallAbsenteeismRate: number
+    overallOvertimeRate: number
+    overallRestPeriodComplianceRate: number
+    lowestRestDept: string
+    overallLicenseComplianceRate: number | null
+    lowestLicenseDept: string
+    totalLocumCost: number
+    totalPermanentCost: number
+    locumCostRatio: number | null
+    totalLocum: number
+    totalPermanent: number
   }
   departments: DeptStat[]
 }
@@ -43,20 +57,28 @@ function narrative(data: ReportData): string {
     ? Math.round((s.totalOvertimeHours / s.totalHoursWorked) * 100)
     : 0
 
-  return `For the month of ${mon} ${yr}, AMC Hospital recorded an overall attendance rate of ${s.overallAttendanceRate}%, which is considered ${rateDesc} against the hospital's 90% benchmark. Out of ${s.totalActiveStaff} active staff members across ${s.totalDepartments} departments, a total of ${s.totalPresent.toLocaleString()} working-day attendances were recorded, with ${s.totalAbsent.toLocaleString()} absences and ${s.totalOnLeave.toLocaleString()} approved leave days.
-
-The ${s.topPerformingDept} department achieved the highest attendance rate this month, demonstrating strong staffing discipline and scheduling efficiency. The ${s.lowestAttendanceDept} department recorded the lowest attendance rate and is recommended for further review with departmental heads to identify any underlying operational or staffing challenges.
-
-A total of ${s.totalHoursWorked.toLocaleString()} hours were worked across the hospital, inclusive of ${s.totalOvertimeHours.toLocaleString()} overtime hours (${overtimePct}% of total hours worked). The ${s.highestOvertimeDept} department logged the highest overtime, which may indicate understaffing or seasonal patient demand increases — management should assess whether additional permanent or locum staff are required.
-
-Leave utilisation this month comprised ${s.totalAnnualLeaveDays} annual leave days and ${s.totalSickLeaveDays} sick leave days. The hospital currently employs ${s.locumStaff} locum staff to support cover across departments.
-
-Management attention is recommended for departments with attendance rates below 80%, high sick-leave clustering, and extended overtime patterns which may indicate staff burnout or resource gaps.
-
-${(() => {
+  const punctualityDesc = s.overallPunctualityRate >= 90 ? 'strong' : s.overallPunctualityRate >= 75 ? 'satisfactory' : 'below target'
   const adherenceDesc = s.overallAdherenceRate >= 90 ? 'strong' : s.overallAdherenceRate >= 75 ? 'moderate' : 'below target'
-  return `Schedule adherence for ${mon} ${yr} stands at ${s.overallAdherenceRate}%, which is ${adherenceDesc}. Out of ${s.totalScheduled} scheduled working shifts, ${s.totalAdhered} were fulfilled with a recorded clock-in. ${s.lowestAdherenceDept} recorded the lowest schedule adherence this month and is recommended for immediate departmental review.`
-})()}`
+  const restDesc = s.overallRestPeriodComplianceRate >= 95 ? 'compliant' : s.overallRestPeriodComplianceRate >= 80 ? 'partially compliant' : 'non-compliant'
+  const licenseDesc = s.overallLicenseComplianceRate === null ? null : s.overallLicenseComplianceRate >= 95 ? 'strong' : s.overallLicenseComplianceRate >= 80 ? 'moderate' : 'below target'
+
+  return `For the month of ${mon} ${yr}, AMC Hospital recorded an overall attendance rate of ${s.overallAttendanceRate}%, which is considered ${rateDesc} against the hospital's 90% benchmark. Out of ${s.totalActiveStaff} active staff members across ${s.totalDepartments} departments, a total of ${s.totalPresent.toLocaleString()} working-day attendances were recorded, with ${s.totalAbsent.toLocaleString()} absences and ${s.totalOnLeave.toLocaleString()} approved leave days. The absenteeism rate for the month stands at ${s.overallAbsenteeismRate}% of all scheduled shifts.
+
+Punctuality across the hospital was ${punctualityDesc}, with ${s.overallPunctualityRate}% of attended shifts recorded without a late arrival. The ${s.topPerformingDept} department achieved the highest attendance rate this month, demonstrating strong staffing discipline. The ${s.lowestAttendanceDept} department recorded the lowest attendance rate and is recommended for review with departmental heads to identify any underlying operational or staffing challenges.
+
+A total of ${s.totalHoursWorked.toLocaleString()} hours were worked across the hospital, inclusive of ${s.totalOvertimeHours.toLocaleString()} overtime hours, representing an overtime rate of ${s.overallOvertimeRate}% of total hours worked. The ${s.highestOvertimeDept} department logged the highest overtime, which may indicate understaffing or increased patient demand — management should assess whether additional permanent or locum staff are required.
+
+Leave utilisation this month comprised ${s.totalAnnualLeaveDays} annual leave days and ${s.totalSickLeaveDays} sick leave days. The hospital currently employs ${s.totalLocum} locum staff and ${s.totalPermanent} permanent staff. A high locum-to-permanent ratio may signal capacity gaps and should be reviewed against departmental budgets.
+
+Schedule adherence for ${mon} ${yr} stands at ${s.overallAdherenceRate}%, which is ${adherenceDesc}. Out of ${s.totalScheduled} scheduled working shifts, ${s.totalAdhered} were fulfilled with a recorded clock-in. ${s.lowestAdherenceDept} recorded the lowest schedule adherence this month and is recommended for immediate departmental review.
+
+Rest period compliance for ${mon} ${yr} stands at ${s.overallRestPeriodComplianceRate}%, which is ${restDesc} against the 11-hour minimum rest standard. ${s.lowestRestDept !== '—' ? `${s.lowestRestDept} recorded the highest number of rest period violations and requires immediate scheduling review to reduce risk of fatigue-related incidents.` : 'No rest period violations were detected this month.'}
+
+${licenseDesc ? `Training and license compliance stands at ${s.overallLicenseComplianceRate}%, which is ${licenseDesc}. ${s.lowestLicenseDept !== '—' ? `${s.lowestLicenseDept} has the highest proportion of expired licenses and requires urgent attention to avoid regulatory risk.` : ''}` : 'License and training compliance data has not yet been entered into the system. HR is recommended to populate staff license records to enable compliance tracking.'}
+
+${s.locumCostRatio !== null ? `The locum-to-permanent cost ratio for ${mon} ${yr} is ${s.locumCostRatio}× — meaning every GH₵1 spent on permanent staff, GH₵${s.locumCostRatio} is spent on locum staff. Total locum spend this month was GH₵${s.totalLocumCost.toLocaleString()}. ${s.locumCostRatio > 0.3 ? 'This ratio exceeds the recommended 0.3× threshold — management should review whether locum dependency can be reduced through permanent hiring.' : 'This ratio is within acceptable range.'}` : 'Staff cost ratio data is not yet available. Add hourly rates for locum staff and monthly salaries for permanent staff in the employee records to enable this analysis.'}
+
+Management attention is recommended for departments with attendance rates below 80%, absenteeism above 10%, punctuality below 85%, overtime rates above 15%, rest period compliance below 95%, or license compliance below 90%, as these patterns may indicate staff burnout, structural resource gaps, or regulatory exposure.`
 }
 
 export default function ReportPage() {
@@ -171,13 +193,20 @@ export default function ReportPage() {
           </div>
 
           {/* Summary KPI strip */}
-          <div className="grid grid-cols-5 gap-4" style={{ fontFamily: 'Arial, sans-serif' }}>
+          <div className="grid grid-cols-4 gap-4" style={{ fontFamily: 'Arial, sans-serif' }}>
             {[
               { label: 'Active Staff', value: s!.totalActiveStaff },
               { label: 'Attendance Rate', value: `${s!.overallAttendanceRate}%` },
-              { label: 'Hours Worked', value: s!.totalHoursWorked.toLocaleString() },
-              { label: 'Overtime Hours', value: s!.totalOvertimeHours.toLocaleString() },
-              { label: 'Schedule Adherence', value: `${s!.overallAdherenceRate}%` },
+              { label: 'Punctuality Rate', value: `${s!.overallPunctualityRate}%` },
+              { label: 'Absenteeism Rate', value: `${s!.overallAbsenteeismRate}%` },
+              { label: 'Shift Adherence', value: `${s!.overallAdherenceRate}%` },
+              { label: 'Overtime Rate', value: `${s!.overallOvertimeRate}%` },
+              { label: 'Rest Period Compliance', value: `${s!.overallRestPeriodComplianceRate}%` },
+              { label: 'License Compliance', value: s!.overallLicenseComplianceRate !== null ? `${s!.overallLicenseComplianceRate}%` : '—' },
+              { label: 'Locum Cost Ratio', value: s!.locumCostRatio !== null ? `${s!.locumCostRatio}×` : '—' },
+              { label: 'Locum Staff', value: s!.totalLocum },
+              { label: 'Permanent Staff', value: s!.totalPermanent },
+              { label: 'Locum Cost (GH₵)', value: s!.totalLocumCost > 0 ? s!.totalLocumCost.toLocaleString() : '—' },
             ].map(k => (
               <div key={k.label} className="border border-gray-200 rounded-lg p-4 text-center bg-gray-50">
                 <div className="text-2xl font-bold text-gray-900">{k.value}</div>
@@ -306,6 +335,51 @@ export default function ReportPage() {
                       <td className="border border-gray-200 px-2 py-1.5 text-center font-bold" style={{ color: d.scheduleAdherenceRate >= 90 ? '#16a34a' : d.scheduleAdherenceRate >= 75 ? '#d97706' : '#dc2626' }}>
                         {d.scheduleAdherenceRate}%
                       </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Key Metrics by Department */}
+          <div style={{ fontFamily: 'Arial, sans-serif' }}>
+            <h2 className="text-lg font-bold mb-3 border-b border-gray-300 pb-2">Key Metrics by Department</h2>
+            <table className="w-full text-xs border-collapse">
+              <thead>
+                <tr className="bg-gray-100">
+                  {['Department', 'Punctuality Rate', 'Absenteeism Rate', 'Overtime Rate', 'Rest Period Compliance', 'License Compliance', 'Locum Cost (GH₵)', 'Perm Cost (GH₵)'].map(h => (
+                    <th key={h} className="border border-gray-200 px-2 py-2 text-left font-semibold text-gray-700">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {data.departments
+                  .sort((a, b) => b.punctualityRate - a.punctualityRate)
+                  .map((d, i) => (
+                    <tr key={d.id} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50'}>
+                      <td className="border border-gray-200 px-2 py-1.5 font-medium">{d.name}</td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-center font-bold"
+                        style={{ color: d.punctualityRate >= 90 ? '#16a34a' : d.punctualityRate >= 75 ? '#d97706' : '#dc2626' }}>
+                        {d.punctualityRate}%
+                      </td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-center font-bold"
+                        style={{ color: d.absenteeismRate <= 5 ? '#16a34a' : d.absenteeismRate <= 10 ? '#d97706' : '#dc2626' }}>
+                        {d.absenteeismRate}%
+                      </td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-center font-bold"
+                        style={{ color: d.overtimeRate <= 10 ? '#16a34a' : d.overtimeRate <= 20 ? '#d97706' : '#dc2626' }}>
+                        {d.overtimeRate}%
+                      </td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-center font-bold"
+                        style={{ color: d.restPeriodComplianceRate >= 95 ? '#16a34a' : d.restPeriodComplianceRate >= 80 ? '#d97706' : '#dc2626' }}>
+                        {d.restPeriodComplianceRate}%
+                      </td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-center font-bold"
+                        style={{ color: d.licenseComplianceRate === null ? '#9ca3af' : d.licenseComplianceRate >= 95 ? '#16a34a' : d.licenseComplianceRate >= 80 ? '#d97706' : '#dc2626' }}>
+                        {d.licenseComplianceRate !== null ? `${d.licenseComplianceRate}%` : '—'}
+                      </td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-right">{d.locumCost > 0 ? d.locumCost.toLocaleString() : '—'}</td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-right">{d.permanentCost > 0 ? d.permanentCost.toLocaleString() : '—'}</td>
                     </tr>
                   ))}
               </tbody>

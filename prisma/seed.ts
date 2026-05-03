@@ -308,6 +308,7 @@ async function main() {
     else if (upper.includes('EMERGENCY') || upper.includes('EMERG')) deptCode = 'EMG'
     else if (upper.includes('HDU') || upper.includes('ICU')) deptCode = 'HDU'
     else if (upper.includes('LAB') || upper.includes('LABORATOR')) deptCode = 'LAB'
+    else if (upper.includes('FRONT OFFICE') || upper.includes('FRONTOFFICE')) deptCode = 'ADM'
     else if (upper.includes('MAINTEN')) deptCode = 'MNT'
     else if (upper.includes('THEATRE') || upper.includes('THEATER')) deptCode = 'THR'
     else if (upper.includes('WARD')) deptCode = 'WRD'

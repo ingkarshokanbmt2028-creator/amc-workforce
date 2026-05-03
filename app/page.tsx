@@ -182,78 +182,85 @@ export default function Dashboard() {
   const [dateStr, setDateStr] = useState('')
   const [trendData, setTrendData] = useState<TrendPoint[]>([])
   const [deductions, setDeductions] = useState(0)
-  const [weekOffset, setWeekOffset] = useState(0) // 0 = this week, -1 = last week, etc.
+  const [weekOffset, setWeekOffset] = useState(0)
   const [trendLoading, setTrendLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
 
   useEffect(() => {
-    const ds = new Date().toISOString().slice(0, 10)
-    setDateStr(ds)
-    const m = new Date().getMonth() + 1
-    const y = new Date().getFullYear()
+    async function load() {
+      const ds = new Date().toISOString().slice(0, 10)
+      setDateStr(ds)
+      const m = new Date().getMonth() + 1
+      const y = new Date().getFullYear()
 
-    Promise.all([
-      fetch('/api/employees').then(r => r.json()),
-      fetch('/api/departments').then(r => r.json()),
-      fetch(`/api/attendance?date=${ds}`).then(r => r.json()),
-      fetch(`/api/attendance?month=${m}&year=${y}&limit=200`).then(r => r.json()),
-    ]).then(([emps, depts, todayAtt, monthAtt]) => {
-      const att: any[] = todayAtt.attendance ?? []
-      const monthRecs: any[] = monthAtt.attendance ?? []
+      try {
+        const [emps, depts, todayAtt, monthAtt] = await Promise.all([
+          fetch('/api/employees').then(r => { if (!r.ok) throw new Error('employees'); return r.json() }),
+          fetch('/api/departments').then(r => { if (!r.ok) throw new Error('departments'); return r.json() }),
+          fetch(`/api/attendance?date=${ds}`).then(r => r.ok ? r.json() : { attendance: [] }),
+          fetch(`/api/attendance?month=${m}&year=${y}&limit=200`).then(r => r.ok ? r.json() : { attendance: [] }),
+        ])
 
-      setStats({
-        totalStaff: emps.length,
-        departments: depts.length,
-        presentToday: att.filter((a: any) => a.status === 'PRESENT' || a.status === 'LATE').length,
-        onLeaveToday: att.filter((a: any) => a.status === 'ON_LEAVE').length,
-        absentToday: att.filter((a: any) => a.status === 'ABSENT').length,
-        lateToday: att.filter((a: any) => a.status === 'LATE').length,
-        overtimeToday: att.filter((a: any) => (a.totalHours ?? 0) > 9).length,
-      })
+        const att: any[] = todayAtt.attendance ?? []
+        const monthRecs: any[] = monthAtt.attendance ?? []
 
-      const deptMap = new Map<string, DeptStat>(depts.map((d: any) => [d.id, { id: d.id, name: d.name, code: d.code, total: 0, present: 0, absent: 0, onLeave: 0 }]))
-      for (const e of (emps as any[])) {
-        const d = deptMap.get(e.departmentId)
-        if (d) d.total++
-      }
-      for (const a of (att as any[])) {
-        const emp = (emps as any[]).find((e: any) => e.id === a.employeeId)
-        if (emp) {
-          const d = deptMap.get(emp.departmentId)
-          if (d) {
-            if (a.status === 'PRESENT' || a.status === 'LATE') d.present++
-            else if (a.status === 'ABSENT') d.absent++
-            else if (a.status === 'ON_LEAVE') d.onLeave++
+        setStats({
+          totalStaff: emps.length,
+          departments: depts.length,
+          presentToday: att.filter((a: any) => a.status === 'PRESENT' || a.status === 'LATE').length,
+          onLeaveToday: att.filter((a: any) => a.status === 'ON_LEAVE').length,
+          absentToday: att.filter((a: any) => a.status === 'ABSENT').length,
+          lateToday: att.filter((a: any) => a.status === 'LATE').length,
+          overtimeToday: att.filter((a: any) => (a.totalHours ?? 0) > 9).length,
+        })
+
+        const deptMap = new Map<string, DeptStat>(depts.map((d: any) => [d.id, { id: d.id, name: d.name, code: d.code, total: 0, present: 0, absent: 0, onLeave: 0 }]))
+        for (const e of (emps as any[])) {
+          const d = deptMap.get(e.departmentId)
+          if (d) d.total++
+        }
+        for (const a of (att as any[])) {
+          const emp = (emps as any[]).find((e: any) => e.id === a.employeeId)
+          if (emp) {
+            const d = deptMap.get(emp.departmentId)
+            if (d) {
+              if (a.status === 'PRESENT' || a.status === 'LATE') d.present++
+              else if (a.status === 'ABSENT') d.absent++
+              else if (a.status === 'ON_LEAVE') d.onLeave++
+            }
           }
         }
+        setDeptStats(Array.from(deptMap.values()).filter((d: DeptStat) => d.total > 0).sort((a: DeptStat, b: DeptStat) => b.total - a.total))
+
+        const otRecs: OvertimeRecord[] = monthRecs
+          .filter((a: any) => (a.totalHours ?? 0) > 9)
+          .map((a: any) => {
+            const emp = emps.find((e: any) => e.id === a.employeeId)
+            const dept = depts.find((d: any) => d.id === emp?.departmentId)
+            const totalHrs = a.totalHours ?? 0
+            return {
+              id: a.id,
+              employeeId: a.employeeId,
+              employeeName: emp?.name ?? 'Unknown',
+              department: dept?.name ?? '—',
+              date: typeof a.date === 'string' ? a.date.slice(0, 10) : new Date(a.date).toISOString().slice(0, 10),
+              hoursWorked: totalHrs,
+              overtimeHours: Math.max(0, totalHrs - 9),
+              status: 'pending',
+            }
+          })
+        setOvertime(otRecs)
+
+        const absentCount = monthRecs.filter((a: any) => a.status === 'ABSENT').length
+        setDeductions(absentCount * 80)
+      } catch {
+        setFetchError(true)
+      } finally {
+        setLoading(false)
       }
-      setDeptStats(Array.from(deptMap.values()).filter((d: DeptStat) => d.total > 0).sort((a: DeptStat, b: DeptStat) => b.total - a.total))
-
-      // Build overtime records — totalHours > 9 counts as overtime
-      const otRecs: OvertimeRecord[] = monthRecs
-        .filter((a: any) => (a.totalHours ?? 0) > 9)
-        .map((a: any) => {
-          const emp = emps.find((e: any) => e.id === a.employeeId)
-          const dept = depts.find((d: any) => d.id === emp?.departmentId)
-          const totalHrs = a.totalHours ?? 0
-          return {
-            id: a.id,
-            employeeId: a.employeeId,
-            employeeName: emp?.name ?? 'Unknown',
-            department: dept?.name ?? '—',
-            date: typeof a.date === 'string' ? a.date.slice(0, 10) : new Date(a.date).toISOString().slice(0, 10),
-            hoursWorked: totalHrs,
-            overtimeHours: Math.max(0, totalHrs - 9),
-            status: 'pending',
-          }
-        })
-      setOvertime(otRecs)
-
-      // Trend data is loaded separately via weekOffset effect
-
-      // Estimate deductions: absent days × avg daily rate (GH₵ 80 placeholder)
-      const absentCount = monthRecs.filter((a: any) => a.status === 'ABSENT').length
-      setDeductions(absentCount * 80)
-    })
+    }
+    load()
   }, [])
 
   // Fetch trend data for selected week
@@ -298,13 +305,13 @@ export default function Dashboard() {
   }, [weekOffset])
 
   const statCards = [
-    { label: 'Total Staff',    value: stats?.totalStaff ?? '—',    color: 'bg-blue-500/10 text-blue-300',    icon: '👥' },
-    { label: 'Departments',    value: stats?.departments ?? '—',    color: 'bg-purple-500/10 text-purple-300', icon: '🏥' },
-    { label: 'Present Today',  value: stats?.presentToday ?? '—',  color: 'bg-green-500/10 text-green-300',  icon: '✅' },
-    { label: 'On Leave',       value: stats?.onLeaveToday ?? '—',  color: 'bg-amber-500/10 text-amber-300',  icon: '🌴' },
-    { label: 'Absent',         value: stats?.absentToday ?? '—',   color: 'bg-red-500/10 text-red-300',      icon: '❌' },
-    { label: 'Overtime Today', value: stats?.overtimeToday ?? '—', color: 'bg-orange-500/10 text-orange-300', icon: '⏰' },
-    { label: 'Deductions GH₵', value: stats ? `₵${deductions.toLocaleString()}` : '—', color: 'bg-rose-500/10 text-rose-300', icon: '💸' },
+    { label: 'Total Staff',    value: stats?.totalStaff ?? 0,    color: 'bg-blue-500/10 text-blue-300',    icon: '👥' },
+    { label: 'Departments',    value: stats?.departments ?? 0,    color: 'bg-purple-500/10 text-purple-300', icon: '🏥' },
+    { label: 'Present Today',  value: stats?.presentToday ?? 0,  color: 'bg-green-500/10 text-green-300',  icon: '✅' },
+    { label: 'On Leave',       value: stats?.onLeaveToday ?? 0,  color: 'bg-amber-500/10 text-amber-300',  icon: '🌴' },
+    { label: 'Absent',         value: stats?.absentToday ?? 0,   color: 'bg-red-500/10 text-red-300',      icon: '❌' },
+    { label: 'Overtime Today', value: stats?.overtimeToday ?? 0, color: 'bg-orange-500/10 text-orange-300', icon: '⏰' },
+    { label: 'Deductions GH₵', value: stats ? `₵${deductions.toLocaleString()}` : '₵0', color: 'bg-rose-500/10 text-rose-300', icon: '💸' },
   ]
 
   const narrative = stats && deptStats.length > 0 ? buildNarrative(stats, deptStats, dateStr) : ''
@@ -351,12 +358,45 @@ export default function Dashboard() {
         </div>
       )}
 
+      {/* Error banner */}
+      {fetchError && (
+        <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4 flex items-center gap-3">
+          <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div>
+            <p className="text-sm font-medium text-red-400">Unable to load dashboard data</p>
+            <p className="text-xs text-white/40 mt-0.5">Check your connection or session, then refresh the page.</p>
+          </div>
+        </div>
+      )}
+
+      {/* Empty state banner — loaded but no staff in DB */}
+      {!loading && !fetchError && stats?.totalStaff === 0 && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-5 py-5 flex items-start gap-4">
+          <svg className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-amber-400">No data loaded yet</p>
+            <p className="text-xs text-white/50 mt-1">The database is empty. Import your rota files and run a sync to get started.</p>
+          </div>
+          <Link href="/attendance" className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-amber-500 text-black text-xs font-semibold hover:bg-amber-400 transition-colors">
+            Sync Attendance
+          </Link>
+        </div>
+      )}
+
       {/* Stat cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
         {statCards.map((s) => (
           <div key={s.label} className={`rounded-xl p-4 ${s.color} border border-current/10`}>
             <div className="text-xl mb-1">{s.icon}</div>
-            <div className="text-2xl font-bold">{s.value}</div>
+            <div className="text-2xl font-bold">
+              {loading
+                ? <span className="inline-block h-7 w-10 bg-white/10 rounded-md animate-pulse" />
+                : s.value}
+            </div>
             <div className="text-xs font-medium opacity-70 mt-0.5">{s.label}</div>
           </div>
         ))}
@@ -404,7 +444,9 @@ export default function Dashboard() {
             </div>
           </div>
           {trendLoading ? (
-            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">Loading…</div>
+            <div className="h-[180px] flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full border-4 border-white/5 border-t-white/20 animate-spin" />
+            </div>
           ) : trendData.length > 0 ? (
             <ResponsiveContainer width="100%" height={180}>
               <AreaChart data={trendData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
@@ -437,14 +479,25 @@ export default function Dashboard() {
               </AreaChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">No attendance data for this week</div>
+            <div className="h-[180px] flex flex-col items-center justify-center gap-2 text-center px-6">
+              <p className="text-white/25 text-sm">No attendance synced for this period</p>
+              {weekOffset === 0 && <Link href="/attendance" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">Sync now →</Link>}
+            </div>
           )}
         </div>
 
         {/* Attendance status pie */}
         <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
           <h2 className="font-semibold text-white mb-4 text-sm">Today&apos;s Status</h2>
-          {stats ? (
+          {loading ? (
+            <div className="h-[180px] flex items-center justify-center">
+              <div className="w-24 h-24 rounded-full border-4 border-white/5 border-t-white/20 animate-spin" />
+            </div>
+          ) : fetchError ? (
+            <div className="h-[180px] flex items-center justify-center text-white/30 text-xs text-center px-4">
+              Could not load attendance data
+            </div>
+          ) : stats && (stats.presentToday + stats.absentToday + stats.onLeaveToday + stats.lateToday) > 0 ? (
             <>
               <ResponsiveContainer width="100%" height={140}>
                 <PieChart>
@@ -491,7 +544,10 @@ export default function Dashboard() {
               </div>
             </>
           ) : (
-            <div className="h-[180px] flex items-center justify-center text-white/20 text-sm">Loading…</div>
+            <div className="h-[180px] flex flex-col items-center justify-center gap-3 text-center px-4">
+              <p className="text-white/30 text-xs">No attendance recorded today</p>
+              <Link href="/attendance" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">Sync now →</Link>
+            </div>
           )}
         </div>
       </div>
@@ -518,34 +574,6 @@ export default function Dashboard() {
           </ResponsiveContainer>
         ) : (
           <div className="h-[160px] flex items-center justify-center text-white/20 text-sm">No department data yet</div>
-        )}
-      </div>
-
-      {/* Department overview */}
-      <div className="rounded-xl border border-white/[0.06] p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="font-semibold text-white">Department Attendance Today</h2>
-          <Link href="/roster" className="text-xs text-white/40 hover:text-white/70 transition-colors">View Roster →</Link>
-        </div>
-        {deptStats.length === 0 ? (
-          <p className="text-sm text-white/30">No attendance data yet — click Sync Attendance to load today's data.</p>
-        ) : (
-          <div className="space-y-2.5">
-            {deptStats.map((d) => {
-              const pct = d.total > 0 ? Math.round((d.present / d.total) * 100) : 0
-              const color = pct >= 85 ? '#22c55e' : pct >= 70 ? '#f59e0b' : '#ef4444'
-              return (
-                <div key={d.id} className="flex items-center gap-3">
-                  <span className="w-32 text-xs font-medium text-right text-white/40 truncate">{d.name}</span>
-                  <div className="flex-1 h-5 bg-white/[0.04] rounded-full overflow-hidden">
-                    <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
-                  </div>
-                  <span className="w-10 text-xs font-bold text-right" style={{ color }}>{pct}%</span>
-                  <span className="w-16 text-[10px] text-white/30 text-right">{d.present}/{d.total} in</span>
-                </div>
-              )
-            })}
-          </div>
         )}
       </div>
 

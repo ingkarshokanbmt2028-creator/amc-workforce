@@ -7,6 +7,13 @@ datasource db {
   provider = "postgresql"
 }
 
+enum LicenseStatus {
+  ACTIVE
+  EXPIRING_SOON
+  EXPIRED
+  PENDING
+}
+
 enum ShiftType {
   MORNING
   AFTERNOON
@@ -56,10 +63,13 @@ model Employee {
   biotimeEmpCode       String?
   employeeType         String       @default("PERMANENT") // PERMANENT | LOCUM | CONTRACT
   expectedMonthlyHours Float        @default(180)
+  hourlyRate           Float?       // GH₵ per hour — used for locum/contract cost calculation
+  monthlySalary        Float?       // GH₵ per month — used for permanent staff cost calculation
   rosterSlots          RosterSlot[]
   attendances          Attendance[]
   leaveBalances        LeaveBalance[]
   creditBalances       CreditBalance[]
+  licenses             License[]
 }
 
 model Roster {
@@ -184,4 +194,23 @@ model AuditLog {
   reason     String?
   userId     String?
   createdAt  DateTime @default(now())
+}
+
+model License {
+  id         String        @id @default(cuid())
+  employeeId String
+  employee   Employee      @relation(fields: [employeeId], references: [id])
+  type       String        // e.g. "MEDICAL_LICENSE", "BLS_CPR", "FIRE_SAFETY", "NURSING_LICENSE"
+  licenseNo  String?
+  issuedBy   String?
+  issuedAt   DateTime?
+  expiresAt  DateTime?     // null = no expiry required
+  status     LicenseStatus @default(ACTIVE)
+  notes      String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  @@index([employeeId])
+  @@index([expiresAt])
+  @@index([status])
 }
