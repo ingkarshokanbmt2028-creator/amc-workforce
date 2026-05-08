@@ -1,12 +1,10 @@
 import { prisma } from '@/lib/prisma'
 import { SHIFT_HOURS, SHIFT_TIMES, isLeave } from '@/lib/shifts'
 
-// TODO: Confirm Biotime API URL with AMC IT team
 // TODO: Confirm emp_code field maps to Employee.staffId or separate biotimeEmpCode
-// TODO: Grace period for late — defaulting to 5 min, AMC hasn't decided policy yet
 // TODO: How to handle missing clock-out — currently flagging as PARTIAL
 
-const GRACE_PERIOD_MINUTES = 5
+const GRACE_PERIOD_MINUTES = 15 // AMC policy: 15-minute grace period before marking late
 
 interface BiotimePunch {
   emp_code: string
@@ -314,5 +312,104 @@ export async function syncAttendance(fromDate: Date, toDate: Date) {
     },
   })
 
+  // Auto-check HR notification conditions after every sync
+  await checkAndNotifyHR(toDate)
+
   return { recordsFetched, recordsProcessed, errors }
+}
+
+// ─── HR notification check ────────────────────────────────────────────────────
+
+async function checkAndNotifyHR(asOf: Date) {
+  const RESEND_API_KEY = process.env.RESEND_API_KEY
+  if (!RESEND_API_KEY) return // email not configured, skip silently
+
+  const month = asOf.getMonth() + 1
+  const year  = asOf.getFullYear()
+  const monthStart = new Date(year, month - 1, 1)
+  const monthEnd   = new Date(year, month, 0)
+
+  try {
+    const employees  = await prisma.employee.findMany({
+      where: { status: 'ACTIVE' },
+      select: { id: true, name: true, expectedMonthlyHours: true, department: { select: { name: true } } },
+    })
+    const attendance = await prisma.attendance.findMany({
+      where: { date: { gte: monthStart, lte: monthEnd } },
+      select: { employeeId: true, status: true, lateMinutes: true, earlyDepartureMinutes: true, totalHours: true },
+    })
+
+    const empMap = new Map(employees.map(e => [e.id, e]))
+    const flags: { name: string; dept: string; reason: string }[] = []
+
+    const grouped = new Map<string, { lateCount: number; earlyCount: number; absences: number; totalHours: number }>()
+    for (const a of attendance) {
+      const cur = grouped.get(a.employeeId) ?? { lateCount: 0, earlyCount: 0, absences: 0, totalHours: 0 }
+      if ((a.lateMinutes ?? 0) > 0) cur.lateCount++
+      if ((a.earlyDepartureMinutes ?? 0) > 0) cur.earlyCount++
+      if (a.status === 'ABSENT') cur.absences++
+      cur.totalHours += a.totalHours ?? 0
+      grouped.set(a.employeeId, cur)
+    }
+
+    for (const [empId, data] of grouped) {
+      const emp = empMap.get(empId)
+      if (!emp) continue
+      const name = emp.name
+      const dept = (emp as any).department?.name ?? '—'
+
+      if (data.lateCount >= 3) flags.push({ name, dept, reason: `${data.lateCount} late arrivals this month` })
+      if (data.absences > 0) flags.push({ name, dept, reason: `${data.absences} unapproved absence(s)` })
+      if (data.earlyCount >= 3) flags.push({ name, dept, reason: `${data.earlyCount} early departures this month` })
+
+      // Monthly hours compliance check
+      const target = emp.expectedMonthlyHours
+      if (data.totalHours < target * 0.9) {
+        flags.push({ name, dept, reason: `Only ${Math.round(data.totalHours)}h worked vs ${target}h required` })
+      }
+    }
+
+    if (flags.length === 0) return
+
+    const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
+    const rows = flags.map(f =>
+      `<tr><td style="padding:6px 12px;border-bottom:1px solid #f0f0f0">${f.name}</td><td style="padding:6px 12px;border-bottom:1px solid #f0f0f0">${f.dept}</td><td style="padding:6px 12px;border-bottom:1px solid #f0f0f0;color:#dc2626">${f.reason}</td></tr>`
+    ).join('')
+
+    const html = `
+      <div style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto">
+        <div style="background:#0f1117;padding:24px 32px;border-radius:8px 8px 0 0">
+          <h1 style="color:#f59e0b;margin:0;font-size:20px">AMC Hospital — HR Notification</h1>
+          <p style="color:rgba(255,255,255,0.5);margin:4px 0 0;font-size:13px">${MONTHS[month-1]} ${year} · Auto-generated after attendance sync</p>
+        </div>
+        <div style="background:#fff;padding:24px 32px;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px">
+          <p style="color:#374151;font-size:14px">The following staff members require HR attention based on attendance data synced from BioTime:</p>
+          <table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:16px">
+            <thead>
+              <tr style="background:#f9fafb">
+                <th style="padding:8px 12px;text-align:left;color:#6b7280;font-weight:600;border-bottom:2px solid #e5e7eb">Name</th>
+                <th style="padding:8px 12px;text-align:left;color:#6b7280;font-weight:600;border-bottom:2px solid #e5e7eb">Department</th>
+                <th style="padding:8px 12px;text-align:left;color:#dc2626;font-weight:600;border-bottom:2px solid #e5e7eb">Issue</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <p style="color:#9ca3af;font-size:11px;margin-top:24px;border-top:1px solid #f0f0f0;padding-top:12px">Automated notification from AMC Workforce Management System.</p>
+        </div>
+      </div>
+    `
+
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        from: 'AMC Workforce <onboarding@resend.dev>',
+        to: [process.env.HR_EMAIL ?? 'hr@accramedical.com'],
+        subject: `[AMC] HR Attention Required — ${flags.length} staff flagged`,
+        html,
+      }),
+    })
+  } catch {
+    // Notification failure should never break sync
+  }
 }

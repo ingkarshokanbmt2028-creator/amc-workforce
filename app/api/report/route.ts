@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       prisma.department.findMany({ orderBy: { name: 'asc' } }),
       prisma.employee.findMany({
         where: { status: 'ACTIVE' },
-        select: { id: true, name: true, staffId: true, departmentId: true, employeeType: true, position: true },
+        select: { id: true, name: true, staffId: true, departmentId: true, employeeType: true, position: true, expectedMonthlyHours: true },
       }),
       prisma.roster.findMany({
         where: { month, year },
@@ -93,6 +93,21 @@ export async function GET(req: NextRequest) {
     const absenteeismRate = scheduledCount > 0 ? Math.round((absent / scheduledCount) * 100) : 0
     const overtimeRate = hoursWorked > 0 ? Math.round((overtimeHrs / hoursWorked) * 100) : 0
 
+    // Monthly hours compliance — employees who met their required hours target
+    const empHoursMap = new Map<string, number>()
+    for (const a of deptAttendance) {
+      const prev = empHoursMap.get(a.employeeId) ?? 0
+      empHoursMap.set(a.employeeId, prev + (a.totalHours ?? 0))
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const meetingHours = deptEmps.filter((e: any) => {
+      const worked = empHoursMap.get(e.id) ?? 0
+      return worked >= e.expectedMonthlyHours
+    }).length
+    const hoursComplianceRate = deptEmps.length > 0 ? Math.round((meetingHours / deptEmps.length) * 100) : 0
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const totalExpectedHours = deptEmps.reduce((s: number, e: any) => s + (e.expectedMonthlyHours ?? 180), 0)
+
     return {
       id: dept.id, name: dept.name, code: dept.code,
       totalStaff: deptEmps.length,
@@ -100,6 +115,7 @@ export async function GET(req: NextRequest) {
       present, absent, onLeave, late,
       attendanceRate,
       punctualityRate, absenteeismRate, overtimeRate,
+      hoursComplianceRate, totalExpectedHours,
       hoursWorked: Math.round(hoursWorked * 10) / 10,
       overtimeHours: Math.round(overtimeHrs * 10) / 10,
       plannedHours,
@@ -128,6 +144,12 @@ export async function GET(req: NextRequest) {
   const totalAdhered   = deptStats.reduce((s, d) => s + d.adheredCount, 0)
   const overallAdherenceRate = totalScheduled > 0 ? Math.round((totalAdhered / totalScheduled) * 100) : 0
   const lowestAdherenceDept = [...deptStats].filter(d => d.scheduledCount > 0).sort((a,b) => a.scheduleAdherenceRate - b.scheduleAdherenceRate)[0]?.name ?? '—'
+
+  // Monthly hours compliance overall
+  const overallHoursComplianceRate = deptStats.length > 0
+    ? Math.round(deptStats.reduce((s, d) => s + d.hoursComplianceRate, 0) / deptStats.length)
+    : 0
+  const lowestHoursComplianceDept = [...deptStats].sort((a, b) => a.hoursComplianceRate - b.hoursComplianceRate)[0]?.name ?? '—'
 
   const totalPunctual = deptStats.reduce((s, d) => s + (d.present - d.late), 0)
   const overallPunctualityRate = totalPresent > 0 ? Math.round((totalPunctual / totalPresent) * 100) : 0
@@ -160,6 +182,8 @@ export async function GET(req: NextRequest) {
       overallPunctualityRate,
       overallAbsenteeismRate,
       overallOvertimeRate,
+      overallHoursComplianceRate,
+      lowestHoursComplianceDept,
       totalLocum,
       totalPermanent,
     },

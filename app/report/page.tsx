@@ -10,6 +10,7 @@ interface DeptStat {
   present: number; absent: number; onLeave: number; late: number
   attendanceRate: number
   punctualityRate: number; absenteeismRate: number; overtimeRate: number
+  hoursComplianceRate: number; totalExpectedHours: number
   hoursWorked: number; overtimeHours: number; plannedHours: number
   annualLeaveDays: number; sickLeaveDays: number; maternityLeaveDays: number
   scheduledCount: number
@@ -33,6 +34,8 @@ interface ReportData {
     overallPunctualityRate: number
     overallAbsenteeismRate: number
     overallOvertimeRate: number
+    overallHoursComplianceRate: number
+    lowestHoursComplianceDept: string
     totalLocum: number
     totalPermanent: number
   }
@@ -62,7 +65,9 @@ Leave utilisation this month comprised ${s.totalAnnualLeaveDays} annual leave da
 
 Schedule adherence for ${mon} ${yr} stands at ${s.overallAdherenceRate}%, which is ${adherenceDesc}. Out of ${s.totalScheduled} scheduled working shifts, ${s.totalAdhered} were fulfilled with a recorded clock-in. ${s.lowestAdherenceDept} recorded the lowest schedule adherence this month and is recommended for immediate departmental review.
 
-Management attention is recommended for departments with attendance rates below 80%, absenteeism above 10%, punctuality below 85%, or overtime rates above 15%, as these patterns may indicate staff burnout or structural resource gaps.`
+Monthly hours compliance stands at ${s.overallHoursComplianceRate}% — meaning ${s.overallHoursComplianceRate}% of staff met their required monthly hours target (Nurses: 180h, Doctors: 192h, Lab/Pharmacy: 150h). ${s.lowestHoursComplianceDept !== '—' ? `${s.lowestHoursComplianceDept} has the lowest proportion of staff meeting their hours target and should be reviewed for salary adjustments.` : ''}
+
+Management attention is recommended for departments with attendance rates below 80%, absenteeism above 10%, punctuality below 85%, overtime rates above 15%, or hours compliance below 90%, as these patterns may indicate staff burnout or structural resource gaps.`
 }
 
 export default function ReportPage() {
@@ -185,6 +190,7 @@ export default function ReportPage() {
               { label: 'Absenteeism Rate', value: `${s!.overallAbsenteeismRate}%` },
               { label: 'Shift Adherence', value: `${s!.overallAdherenceRate}%` },
               { label: 'Overtime Rate', value: `${s!.overallOvertimeRate}%` },
+              { label: 'Hours Compliance', value: `${s!.overallHoursComplianceRate}%` },
               { label: 'Locum Staff', value: s!.totalLocum },
               { label: 'Permanent Staff', value: s!.totalPermanent },
             ].map(k => (
@@ -327,7 +333,7 @@ export default function ReportPage() {
             <table className="w-full text-xs border-collapse">
               <thead>
                 <tr className="bg-gray-100">
-                  {['Department', 'Punctuality Rate', 'Absenteeism Rate', 'Overtime Rate'].map(h => (
+                  {['Department', 'Punctuality Rate', 'Absenteeism Rate', 'Overtime Rate', 'Hours Compliance'].map(h => (
                     <th key={h} className="border border-gray-200 px-2 py-2 text-left font-semibold text-gray-700">{h}</th>
                   ))}
                 </tr>
@@ -349,6 +355,10 @@ export default function ReportPage() {
                       <td className="border border-gray-200 px-2 py-1.5 text-center font-bold"
                         style={{ color: d.overtimeRate <= 10 ? '#16a34a' : d.overtimeRate <= 20 ? '#d97706' : '#dc2626' }}>
                         {d.overtimeRate}%
+                      </td>
+                      <td className="border border-gray-200 px-2 py-1.5 text-center font-bold"
+                        style={{ color: d.hoursComplianceRate >= 90 ? '#16a34a' : d.hoursComplianceRate >= 75 ? '#d97706' : '#dc2626' }}>
+                        {d.hoursComplianceRate}%
                       </td>
                     </tr>
                   ))}
