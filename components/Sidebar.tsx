@@ -1,82 +1,79 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth, ROLE_LABELS } from '@/lib/auth'
-import { LogOut } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import {
+  LogOut, Home, CalendarDays, Clock, CheckSquare,
+  BarChart3, Download, BookOpen, Settings,
+  PanelLeftClose, PanelLeftOpen, ChevronDown,
+} from 'lucide-react'
+import { useState } from 'react'
 
-const NAV_TOP = [
-  { href: '/', label: 'Home', icon: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-    </svg>
-  )},
-  { href: '/roster', label: 'Duty Roster', icon: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-    </svg>
-  )},
-  { href: '/attendance', label: 'Attendance', icon: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )},
-  { href: '/attendance/compliance', label: 'Shift Adherence', icon: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  )},
+// ── Nav structure matching Osiyo's grouping ──────────────────────────────────
+
+const NAV_DAILY = [
+  { href: '/',                    label: 'Home',           Icon: Home,        exact: true  },
+  { href: '/attendance',          label: 'Attendance',     Icon: Clock,       exact: false },
+  { href: '/roster',              label: 'Duty Roster',    Icon: CalendarDays, exact: false },
 ]
 
-const NAV_BOTTOM = [
-  { href: '/report', label: 'CEO Report', icon: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    </svg>
-  )},
-  { href: '/quick-ask', label: 'Quick AI Ask', icon: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-    </svg>
-  )},
-  { href: '/resources', label: 'Compliance', icon: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-    </svg>
-  )},
-  { href: '/settings', label: 'Settings', icon: (
-    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-    </svg>
-  )},
+const NAV_METRICS = [
+  { href: '/attendance/compliance', label: 'Shift Adherence', Icon: CheckSquare },
 ]
 
-function NavLink({ href, label, icon, path }: { href: string; label: string; icon: React.ReactNode; path: string }) {
-  const active = href === '/'
-    ? path === '/'
-    : path === href || (path.startsWith(href + '/') && href !== '/attendance')
+const NAV_TOOLS = [
+  { href: '/report',     label: 'CEO Report',   Icon: Download   },
+  { href: '/quick-ask',  label: 'Quick AI Ask', Icon: BarChart3  },
+  { href: '/resources',  label: 'Compliance',   Icon: BookOpen   },
+  { href: '/settings',   label: 'Settings',     Icon: Settings   },
+]
+
+// ── Nav item ─────────────────────────────────────────────────────────────────
+
+function NavItem({
+  href, label, Icon, path, collapsed, exact = false,
+}: {
+  href: string; label: string; Icon: React.ComponentType<{ className?: string }>
+  path: string; collapsed: boolean; exact?: boolean
+}) {
+  const active = exact ? path === href : path === href || path.startsWith(href + '/')
   return (
     <Link
       href={href}
-      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
-        active
-          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-          : 'text-white/50 hover:text-white/80 hover:bg-white/[0.04]'
-      }`}
+      title={collapsed ? label : undefined}
+      className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-colors
+        ${active
+          ? 'bg-[hsl(215_27%_26%)] text-[hsl(220_22%_92%)] font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-r before:bg-[#DCAA05]'
+          : 'text-[hsl(220_18%_86%/0.65)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)]'
+        }`}
     >
-      <span className={active ? 'text-amber-400' : ''}>{icon}</span>
-      {label}
+      <Icon className="h-4 w-4 shrink-0" />
+      {!collapsed && <span>{label}</span>}
     </Link>
   )
 }
+
+// ── Section label ─────────────────────────────────────────────────────────────
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10px] tracking-[0.16em] uppercase text-[hsl(220_18%_86%/0.4)] px-3 mb-2 mt-6 font-medium font-display">
+      {children}
+    </p>
+  )
+}
+
+// ── Sidebar ───────────────────────────────────────────────────────────────────
 
 export function Sidebar() {
   const path   = usePathname()
   const router = useRouter()
   const { user, role, signOut } = useAuth()
 
+  const [collapsed, setCollapsed]       = useState(false)
+  const [metricsOpen, setMetricsOpen]   = useState(path.startsWith('/attendance/compliance'))
 
   if (path === '/login') return null
 
@@ -85,52 +82,157 @@ export function Sidebar() {
     router.push('/login')
   }
 
-  const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : 'AM'
+  const initials = user?.email
+    ? user.email.split('@')[0].slice(0, 2).toUpperCase()
+    : 'AM'
 
-return (
-    <aside className="w-56 flex-shrink-0 flex flex-col h-screen sticky top-0 bg-[#0f1117] border-r border-white/[0.06]">
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-5 py-5 border-b border-white/[0.06]">
-        <div className="w-8 h-8 rounded-xl bg-amber-500 flex items-center justify-center text-black font-black text-sm">A</div>
-        <div>
-          <p className="font-bold text-sm text-white leading-none">AMC</p>
-          <p className="text-[10px] text-white/40 leading-none mt-0.5">Accra Medical Centre</p>
-        </div>
+  const onMetricsClick = () => {
+    if (collapsed) {
+      router.push('/attendance/compliance')
+    } else {
+      setMetricsOpen(o => !o)
+    }
+  }
+
+  const metricsActive = path.startsWith('/attendance/compliance')
+
+  return (
+    <aside
+      className="flex-shrink-0 flex flex-col h-screen sticky top-0 border-r transition-all duration-200"
+      style={{
+        width: collapsed ? '56px' : '220px',
+        background: 'hsl(215 30% 19%)',
+        borderColor: 'hsl(215 22% 28%)',
+      }}
+    >
+      {/* ── Header: logo + collapse toggle ── */}
+      <div
+        className="flex items-start justify-between border-b px-3 py-5"
+        style={{ borderColor: 'hsl(215 22% 28%)' }}
+      >
+        {collapsed ? (
+          <div className="flex flex-col items-center gap-3 w-full">
+            <Link href="/">
+              <Image src="/amc-sun.png" alt="AMC" width={36} height={36} className="object-contain" />
+            </Link>
+            <button
+              onClick={() => setCollapsed(false)}
+              aria-label="Expand sidebar"
+              className="p-1.5 rounded-md text-[hsl(220_18%_86%/0.45)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)] transition-colors"
+            >
+              <PanelLeftOpen className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <>
+            <Link href="/">
+              <Image src="/amc-logo.png" alt="Accra Medical Centre" width={130} height={48} className="object-contain object-left" />
+            </Link>
+            <button
+              onClick={() => setCollapsed(true)}
+              aria-label="Collapse sidebar"
+              className="mt-1 p-1.5 rounded-md text-[hsl(220_18%_86%/0.45)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)] transition-colors shrink-0"
+            >
+              <PanelLeftClose className="h-4 w-4" />
+            </button>
+          </>
+        )}
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      {!collapsed && (
+        <p className="text-[10px] tracking-[0.16em] uppercase text-[hsl(220_18%_86%/0.4)] px-4 pt-3 font-medium font-display">
+          Workforce
+        </p>
+      )}
 
-        {/* Top nav items */}
-        {NAV_TOP.map(n => <NavLink key={n.href} {...n} path={path} />)}
+      {/* ── Navigation ── */}
+      <nav className="flex-1 px-2 pt-2 pb-4 overflow-y-auto space-y-0.5">
 
+        {/* Daily */}
+        {!collapsed && <SectionLabel>Daily</SectionLabel>}
+        {NAV_DAILY.map(n => (
+          <NavItem key={n.href} {...n} path={path} collapsed={collapsed} />
+        ))}
 
-        {/* Bottom nav items */}
-        {NAV_BOTTOM.map(n => <NavLink key={n.href} {...n} path={path} />)}
+        {/* Metrics */}
+        {!collapsed && <SectionLabel>Metrics</SectionLabel>}
+        <button
+          onClick={onMetricsClick}
+          title={collapsed ? 'Metrics' : undefined}
+          className={`relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-colors
+            ${metricsActive
+              ? 'bg-[hsl(215_27%_26%)] text-[hsl(220_22%_92%)] font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-r before:bg-[#DCAA05]'
+              : 'text-[hsl(220_18%_86%/0.65)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)]'
+            }`}
+        >
+          <BarChart3 className="h-4 w-4 shrink-0" />
+          {!collapsed && (
+            <>
+              <span className="flex-1 text-left">Metrics</span>
+              <ChevronDown className={`h-3.5 w-3.5 text-[hsl(220_18%_86%/0.45)] transition-transform ${metricsOpen ? 'rotate-180' : ''}`} />
+            </>
+          )}
+        </button>
+
+        {metricsOpen && !collapsed && (
+          <div className="ml-3 pl-3 border-l border-[hsl(215_22%_28%/0.6)] mt-0.5 mb-1 space-y-0.5">
+            {NAV_METRICS.map(m => (
+              <Link
+                key={m.href}
+                href={m.href}
+                className={`block rounded-md px-2.5 py-1.5 text-[12px] transition-colors
+                  ${path === m.href
+                    ? 'text-[hsl(220_18%_86%)] bg-[hsl(215_27%_26%/0.6)] font-medium'
+                    : 'text-[hsl(220_18%_86%/0.6)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.4)]'
+                  }`}
+              >
+                {m.label}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        {/* Tools */}
+        {!collapsed && <SectionLabel>Tools</SectionLabel>}
+        {NAV_TOOLS.map(n => (
+          <NavItem key={n.href} {...n} path={path} collapsed={collapsed} />
+        ))}
       </nav>
 
-      {/* User footer */}
-      <div className="px-4 py-4 border-t border-white/[0.06] space-y-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-amber-500/15 flex items-center justify-center text-xs font-bold text-amber-400 shrink-0">
-            {initials}
+      {/* ── Footer ── */}
+      <div
+        className="p-3 border-t"
+        style={{ borderColor: 'hsl(215 22% 28%)' }}
+      >
+        {!collapsed ? (
+          <div>
+            <div className="px-2 py-2">
+              <p className="text-[12px] font-medium text-[hsl(220_18%_86%)] truncate leading-tight">
+                {user?.email ?? '—'}
+              </p>
+              {role && (
+                <p className="text-[10px] text-[hsl(220_18%_86%/0.5)] mt-0.5 tracking-[0.08em] uppercase font-display">
+                  {ROLE_LABELS[role] ?? role}
+                </p>
+              )}
+            </div>
+            <button
+              onClick={handleSignOut}
+              className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-[12px] text-[hsl(220_18%_86%/0.65)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)] transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
+            </button>
           </div>
-          <div className="min-w-0 flex-1">
-            <p className="text-xs font-medium text-white/80 truncate">{user?.email ?? '—'}</p>
-            {role && (
-              <span className="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-500/15 text-amber-400 mt-0.5">
-                {ROLE_LABELS[role] ?? role}
-              </span>
-            )}
-          </div>
-        </div>
-        <button
-          onClick={handleSignOut}
-          className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-medium text-white/40 hover:text-white/70 hover:bg-white/[0.04] transition-all"
-        >
-          <LogOut className="w-3.5 h-3.5" />
-          Sign Out
-        </button>
+        ) : (
+          <button
+            onClick={handleSignOut}
+            aria-label="Sign out"
+            className="w-full flex items-center justify-center p-2 rounded-md text-[hsl(220_18%_86%/0.65)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)] transition-colors"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        )}
       </div>
     </aside>
   )
