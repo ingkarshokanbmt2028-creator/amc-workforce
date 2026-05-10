@@ -552,30 +552,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Department bar chart */}
-      <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-        <h2 className="font-semibold text-white mb-4 text-sm">Staff Count by Department</h2>
-        {deptStats.length > 0 ? (
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={deptStats} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="code" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 10 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip
-                contentStyle={{ background: '#1a1d27', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
-                labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
-                itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
-              />
-              <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }} />
-              <Bar dataKey="total"   fill="#f59e0b" fillOpacity={0.7} radius={[3,3,0,0]} name="Total" />
-              <Bar dataKey="present" fill="#22c55e" fillOpacity={0.8} radius={[3,3,0,0]} name="Present" />
-              <Bar dataKey="absent"  fill="#ef4444" fillOpacity={0.7} radius={[3,3,0,0]} name="Absent" />
-            </BarChart>
-          </ResponsiveContainer>
-        ) : (
-          <div className="h-[160px] flex items-center justify-center text-white/20 text-sm">No department data yet</div>
-        )}
-      </div>
 
       {/* Quick links */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
@@ -598,38 +574,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Department cards */}
-      {deptStats.length > 0 && (
-        <div>
-          <h2 className="font-semibold text-white text-sm mb-3">Departments</h2>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-            {deptStats.map((d) => {
-              const pct   = d.total > 0 ? Math.round((d.present / d.total) * 100) : 0
-              const color = pct >= 85 ? '#22c55e' : pct >= 70 ? '#f59e0b' : '#ef4444'
-              const bgCol = pct >= 85 ? 'border-green-500/20' : pct >= 70 ? 'border-amber-500/20' : 'border-red-500/20'
-              return (
-                <Link
-                  key={d.id}
-                  href={`/departments?dept=${d.id}`}
-                  className={`rounded-xl border ${bgCol} bg-white/[0.02] p-4 hover:bg-white/[0.04] transition-all`}
-                >
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="h-8 w-8 rounded-lg bg-white/5 flex items-center justify-center text-xs font-black text-white/50">
-                      {d.code}
-                    </div>
-                    <span className="text-xs font-bold" style={{ color }}>{pct}%</span>
-                  </div>
-                  <p className="text-xs font-semibold text-white truncate">{d.name}</p>
-                  <p className="text-[11px] text-white/30 mt-0.5">{d.total} staff</p>
-                  <div className="mt-2 h-1 bg-white/5 rounded-full overflow-hidden">
-                    <div className="h-full rounded-full" style={{ width: `${pct}%`, backgroundColor: color }} />
-                  </div>
-                </Link>
-              )
-            })}
-          </div>
-        </div>
-      )}
     </div>
   )
 }
