@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/prisma'
+import { getMockRosters } from '@/lib/mock-roster'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
 
   let rosters: unknown[] = []
   try {
+    const { prisma } = await import('@/lib/prisma')
     rosters = await prisma.roster.findMany({
       where,
       include: {
@@ -31,6 +32,15 @@ export async function GET(req: NextRequest) {
     })
   } catch { /* DB unavailable */ }
 
+  // Fall back to mock rota data when DB has no results
+  if (rosters.length === 0) {
+    let mockRosters = getMockRosters(month, year)
+    if (departmentId) {
+      mockRosters = mockRosters.filter(r => r.departmentId === departmentId)
+    }
+    return NextResponse.json(mockRosters)
+  }
+
   return NextResponse.json(rosters)
 }
 
@@ -41,6 +51,8 @@ export async function POST(req: NextRequest) {
   if (!departmentId || !month || !year || !createdBy) {
     return NextResponse.json({ error: 'departmentId, month, year, createdBy required' }, { status: 400 })
   }
+
+  const { prisma } = await import('@/lib/prisma')
 
   const existing = await prisma.roster.findUnique({
     where: { departmentId_month_year: { departmentId, month, year } },
