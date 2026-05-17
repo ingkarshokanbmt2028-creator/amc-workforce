@@ -43,50 +43,49 @@
   --radius-xl: calc(var(--radius) * 1.4);
 }
 
-/* ── AMC Light Theme ── */
+/* ── AMC Dark Theme (default) ── */
 :root {
-  /* Surfaces — cool off-white */
-  --background:           hsl(220 22% 96%);
-  --foreground:           hsl(215 25% 25%);
-  --card:                 hsl(0 0% 100%);
-  --card-foreground:      hsl(215 25% 25%);
-  --popover:              hsl(0 0% 100%);
-  --popover-foreground:   hsl(215 25% 25%);
+  --background:           hsl(215 28% 10%);
+  --foreground:           hsl(220 18% 88%);
+  --card:                 hsl(215 25% 13%);
+  --card-foreground:      hsl(220 18% 88%);
+  --popover:              hsl(215 25% 13%);
+  --popover-foreground:   hsl(220 18% 88%);
 
-  /* Primary — AMC blue */
-  --primary:              hsl(215 27% 27%);
-  --primary-foreground:   hsl(220 22% 96%);
+  /* Primary — AMC yellow */
+  --primary:              hsl(44 90% 52%);
+  --primary-foreground:   hsl(215 28% 10%);
 
   /* Secondary */
-  --secondary:            hsl(220 14% 91%);
-  --secondary-foreground: hsl(215 25% 25%);
+  --secondary:            hsl(215 22% 18%);
+  --secondary-foreground: hsl(220 18% 88%);
 
   /* Muted */
-  --muted:                hsl(220 16% 93%);
-  --muted-foreground:     hsl(215 14% 44%);
+  --muted:                hsl(215 22% 16%);
+  --muted-foreground:     hsl(215 12% 60%);
 
   /* Accent — AMC yellow */
-  --accent:               hsl(44 95% 44%);
-  --accent-foreground:    hsl(215 27% 18%);
+  --accent:               hsl(44 90% 52%);
+  --accent-foreground:    hsl(215 28% 10%);
 
   /* Destructive */
-  --destructive:          hsl(1 78% 42%);
+  --destructive:          hsl(1 70% 52%);
 
   /* Structure */
-  --border:               hsl(220 14% 86%);
-  --input:                hsl(220 14% 86%);
-  --ring:                 hsl(215 27% 30%);
+  --border:               hsl(215 20% 22%);
+  --input:                hsl(215 20% 22%);
+  --ring:                 hsl(44 90% 52%);
   --radius:               0.5rem;
 
   /* Sidebar — AMC dark blue */
-  --sidebar:                      hsl(215 30% 19%);
-  --sidebar-foreground:           hsl(220 18% 86%);
-  --sidebar-primary:              hsl(44 95% 50%);
-  --sidebar-primary-foreground:   hsl(215 30% 12%);
-  --sidebar-accent:               hsl(215 27% 26%);
-  --sidebar-accent-foreground:    hsl(220 22% 92%);
-  --sidebar-border:               hsl(215 22% 28%);
-  --sidebar-ring:                 hsl(44 95% 50%);
+  --sidebar:                      hsl(215 30% 7%);
+  --sidebar-foreground:           hsl(220 18% 84%);
+  --sidebar-primary:              hsl(44 90% 52%);
+  --sidebar-primary-foreground:   hsl(215 28% 10%);
+  --sidebar-accent:               hsl(215 25% 13%);
+  --sidebar-accent-foreground:    hsl(220 18% 90%);
+  --sidebar-border:               hsl(215 20% 16%);
+  --sidebar-ring:                 hsl(44 90% 52%);
 }
 
 /* ── AMC Dark Theme ── */
