@@ -463,7 +463,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="rounded-xl border border-foreground/8 bg-white p-6">
+        <div className="rounded-xl border border-foreground/8 bg-card p-6">
           <p className="font-semibold text-foreground text-sm">Daily attendance rate</p>
           <p className="text-xs text-foreground/40 mt-0.5 mb-5">Percentage of expected staff who clocked in.</p>
 

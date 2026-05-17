@@ -87,7 +87,7 @@ function EmployeeRow({ emp, rec, scheduledShift, onClick }: { emp: Employee; rec
   return (
     <button
       onClick={onClick}
-      className="w-full bg-white rounded-xl border border-foreground/10 px-4 py-3 flex items-center justify-between gap-4 hover:bg-white hover:border-foreground/15 transition-all text-left group"
+      className="w-full bg-card rounded-xl border border-foreground/10 px-4 py-3 flex items-center justify-between gap-4 hover:bg-card/80 hover:border-foreground/15 transition-all text-left group"
     >
       {/* Avatar + name */}
       <div className="flex items-center gap-3 min-w-0">
@@ -280,7 +280,7 @@ export default function AttendancePage() {
             type="date"
             value={date}
             onChange={e => { setDate(e.target.value); setVisibleCount(20) }}
-            className="rounded-lg border border-foreground/15 bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+            className="rounded-lg border border-foreground/15 bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
           />
           <button
             onClick={handleSync}
@@ -363,7 +363,7 @@ export default function AttendancePage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by name or staff ID…"
-          className="w-full pl-9 pr-4 py-2 rounded-lg border border-foreground/15 bg-white/60 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+          className="w-full pl-9 pr-4 py-2 rounded-lg border border-foreground/15 bg-card text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
         />
       </div>
 
@@ -384,7 +384,7 @@ export default function AttendancePage() {
 
         {filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-card flex items-center justify-center">
               <svg className="w-7 h-7 text-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
@@ -399,7 +399,7 @@ export default function AttendancePage() {
         {filtered.length > visibleCount && (
           <button
             onClick={() => setVisibleCount(v => v + 20)}
-            className="w-full py-3 rounded-xl border border-foreground/10 text-sm text-foreground/50 hover:text-foreground/70 hover:bg-white/60 transition-all"
+            className="w-full py-3 rounded-xl border border-foreground/10 text-sm text-foreground/50 hover:text-foreground/70 hover:bg-card/60 transition-all"
           >
             Load more ({filtered.length - visibleCount} remaining)
           </button>

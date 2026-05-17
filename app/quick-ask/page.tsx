@@ -53,7 +53,7 @@ export default function QuickAskPage() {
             <p className="text-xs font-semibold text-foreground/40 uppercase tracking-wider">Suggested questions</p>
             {SUGGESTIONS.map((s, i) => (
               <button key={i} onClick={() => send(s)}
-                className="w-full text-left px-4 py-3 rounded-xl border border-foreground/10 bg-white text-sm text-foreground/60 hover:bg-foreground/5 hover:text-foreground/80 transition-all">
+                className="w-full text-left px-4 py-3 rounded-xl border border-foreground/10 bg-card text-sm text-foreground/60 hover:bg-foreground/5 hover:text-foreground/80 transition-all">
                 {s}
               </button>
             ))}
@@ -101,7 +101,7 @@ export default function QuickAskPage() {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
           placeholder="Ask about policies, leave, overtime, compliance..."
-          className="flex-1 px-4 py-3 rounded-xl bg-white border border-foreground/12 text-sm text-foreground placeholder:text-foreground/30 outline-none focus:ring-1 focus:ring-amber-500/50 transition"
+          className="flex-1 px-4 py-3 rounded-xl bg-card border border-foreground/12 text-sm text-foreground placeholder:text-foreground/30 outline-none focus:ring-1 focus:ring-amber-500/50 transition"
         />
         <button onClick={() => send()} disabled={!input.trim() || loading}
           className="px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black transition disabled:opacity-40">

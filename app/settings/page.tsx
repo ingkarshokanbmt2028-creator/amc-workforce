@@ -24,7 +24,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Account */}
-      <div className="rounded-xl border border-foreground/10 bg-white p-5 space-y-4">
+      <div className="rounded-xl border border-foreground/10 bg-card p-5 space-y-4">
         <h2 className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Account</h2>
         <div className="flex items-center gap-4">
           <div className="h-12 w-12 rounded-full bg-amber-500/15 flex items-center justify-center text-lg font-bold text-amber-400">
@@ -41,7 +41,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Appearance */}
-      <div className="rounded-xl border border-foreground/10 bg-white p-5 space-y-4">
+      <div className="rounded-xl border border-foreground/10 bg-card p-5 space-y-4">
         <h2 className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Appearance</h2>
         <div className="grid grid-cols-3 gap-3">
           {themes.map((t) => (
@@ -59,7 +59,7 @@ export default function SettingsPage() {
       </div>
 
       {/* Layout */}
-      <div className="rounded-xl border border-foreground/10 bg-white p-5 space-y-4">
+      <div className="rounded-xl border border-foreground/10 bg-card p-5 space-y-4">
         <h2 className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Layout</h2>
         {[
           { id: 'compact', icon: LayoutGrid, label: 'Compact mode', sub: 'Reduce spacing and padding', value: compactMode, set: setCompactMode },
@@ -82,7 +82,7 @@ export default function SettingsPage() {
       </div>
 
       {/* About */}
-      <div className="rounded-xl border border-foreground/10 bg-white p-5 space-y-1">
+      <div className="rounded-xl border border-foreground/10 bg-card p-5 space-y-1">
         <h2 className="text-sm font-semibold text-foreground/50 uppercase tracking-wider mb-3">About</h2>
         <p className="text-sm text-foreground">Accra Medical Centre — Workforce Management System</p>
         <p className="text-xs text-foreground/40">Version 1.0.0 · Built with Next.js 16 + Prisma</p>
