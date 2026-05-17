@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/lib/auth'
 import {
-  Shield, LogIn, UserPlus, Loader2, Eye, EyeOff, Clock, TrendingUp,
+  Shield, LogIn, UserPlus, Loader2, Eye, EyeOff, Clock,
 } from 'lucide-react'
 
 export default function LoginPage() {
@@ -100,12 +100,11 @@ export default function LoginPage() {
               Attendance<br />Monitoring<br />System
             </h2>
             <p className="text-sm text-white/50 leading-relaxed max-w-xs">
-              Track staff attendance, manage shift schedules, and generate payroll reports.
+              Track staff attendance, manage shift schedules, and monitor compliance.
             </p>
             <div className="space-y-3 pt-2">
               {[
-                { icon: Clock,       label: 'Live clock-in tracking',      sub: 'Real-time fingerprint data' },
-                { icon: TrendingUp,  label: 'Automated deduction reports', sub: 'Monthly GH₵ calculations'  },
+                { icon: Clock, label: 'Live clock-in tracking', sub: 'Real-time fingerprint data' },
               ].map(f => (
                 <div key={f.label} className="flex items-center gap-3">
                   <div className="h-8 w-8 rounded-lg bg-white/[0.04] border border-white/[0.06] flex items-center justify-center shrink-0">

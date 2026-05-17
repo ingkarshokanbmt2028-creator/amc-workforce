@@ -41,19 +41,19 @@ export default function QuickAskPage() {
       <div className="mb-6">
         <div className="flex items-center gap-2 mb-1">
           <Sparkles className="h-5 w-5 text-amber-400" />
-          <h1 className="text-2xl font-bold text-white">Quick AI Ask</h1>
+          <h1 className="text-2xl font-bold text-foreground">Quick AI Ask</h1>
         </div>
-        <p className="text-sm text-white/40">Ask anything about AMC policies, labour law, or staff management</p>
+        <p className="text-sm text-foreground/50">Ask anything about AMC policies, labour law, or staff management</p>
       </div>
 
       {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto space-y-4 mb-4">
         {messages.length === 0 && (
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-white/30 uppercase tracking-wider">Suggested questions</p>
+            <p className="text-xs font-semibold text-foreground/40 uppercase tracking-wider">Suggested questions</p>
             {SUGGESTIONS.map((s, i) => (
               <button key={i} onClick={() => send(s)}
-                className="w-full text-left px-4 py-3 rounded-xl border border-white/[0.06] bg-white/[0.02] text-sm text-white/60 hover:bg-white/[0.05] hover:text-white/80 transition-all">
+                className="w-full text-left px-4 py-3 rounded-xl border border-foreground/10 bg-white text-sm text-foreground/60 hover:bg-foreground/5 hover:text-foreground/80 transition-all">
                 {s}
               </button>
             ))}
@@ -70,13 +70,13 @@ export default function QuickAskPage() {
             <div className={`max-w-[80%] px-4 py-3 rounded-2xl text-sm leading-relaxed whitespace-pre-wrap ${
               m.role === 'user'
                 ? 'bg-amber-500 text-black rounded-br-sm'
-                : 'bg-white/[0.05] border border-white/[0.06] text-white/80 rounded-bl-sm'
+                : 'bg-foreground/5 border border-foreground/10 text-foreground/80 rounded-bl-sm'
             }`}>
               {m.content}
             </div>
             {m.role === 'user' && (
-              <div className="h-8 w-8 rounded-full bg-white/10 flex items-center justify-center shrink-0 mt-0.5">
-                <User className="h-4 w-4 text-white/60" />
+              <div className="h-8 w-8 rounded-full bg-foreground/8 flex items-center justify-center shrink-0 mt-0.5">
+                <User className="h-4 w-4 text-foreground/60" />
               </div>
             )}
           </div>
@@ -87,8 +87,8 @@ export default function QuickAskPage() {
             <div className="h-8 w-8 rounded-full bg-amber-500/15 flex items-center justify-center shrink-0">
               <Bot className="h-4 w-4 text-amber-400" />
             </div>
-            <div className="px-4 py-3 rounded-2xl bg-white/[0.05] border border-white/[0.06]">
-              <Loader2 className="h-4 w-4 animate-spin text-white/40" />
+            <div className="px-4 py-3 rounded-2xl bg-foreground/5 border border-foreground/10">
+              <Loader2 className="h-4 w-4 animate-spin text-foreground/50" />
             </div>
           </div>
         )}
@@ -101,7 +101,7 @@ export default function QuickAskPage() {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && !e.shiftKey && send()}
           placeholder="Ask about policies, leave, overtime, compliance..."
-          className="flex-1 px-4 py-3 rounded-xl bg-white/[0.04] border border-white/[0.08] text-sm text-white placeholder-white/20 outline-none focus:ring-1 focus:ring-amber-500/50 transition"
+          className="flex-1 px-4 py-3 rounded-xl bg-white border border-foreground/12 text-sm text-foreground placeholder:text-foreground/30 outline-none focus:ring-1 focus:ring-amber-500/50 transition"
         />
         <button onClick={() => send()} disabled={!input.trim() || loading}
           className="px-4 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-black transition disabled:opacity-40">
@@ -121,7 +121,7 @@ function getLocalAnswer(q: string): string {
   if (lower.includes('hefra') || lower.includes('licensing'))
     return "HeFRA (Health Facilities Regulatory Agency Act, Act 829) requires AMC to maintain valid operating licenses, meet minimum staffing ratios, and submit to periodic inspections. All clinical staff must hold current professional registration."
   if (lower.includes('clock') || lower.includes('missed'))
-    return "A missed clock-in is flagged automatically in the attendance system. The department head is notified and can apply a manual override with a reason. Repeated missed punches may trigger a deduction per the credit balance policy."
+    return "A missed clock-in is flagged automatically in the attendance system. The department head is notified and can apply a manual override with a reason. Repeated missed punches are escalated to HR for review."
   if (lower.includes('locum'))
     return "Locum staff are tracked separately from permanent employees in the system. They are not entitled to annual leave accrual but must adhere to the same shift rules and clock-in requirements."
   return "I don't have a specific answer for that yet. For detailed policy questions, please refer to your HR department or the official resources in the Resources page. You can also connect this to the Claude AI API for full AI responses."

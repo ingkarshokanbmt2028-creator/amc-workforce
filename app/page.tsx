@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useAuth, ROLE_LABELS } from '@/lib/auth'
 import {
-  AreaChart, Area, BarChart, Bar, PieChart, Pie, Cell,
+  LineChart, Line, ReferenceLine,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts'
 
@@ -172,6 +172,40 @@ function OvertimeBell({ overtime }: { overtime: OvertimeRecord[] }) {
   )
 }
 
+// ── Circular attendance progress ─────────────────────────────────────────────
+
+function CircularProgress({ present, total }: { present: number; total: number }) {
+  const r = 48
+  const circ = 2 * Math.PI * r
+  const rate = total > 0 ? present / total : 0
+  const dash = rate * circ
+
+  return (
+    <svg width="128" height="128" viewBox="0 0 128 128" className="shrink-0">
+      <circle cx="64" cy="64" r={r} fill="none" stroke="hsl(220 15% 90%)" strokeWidth="9" />
+      {dash > 0 && (
+        <circle
+          cx="64" cy="64" r={r}
+          fill="none"
+          stroke="#DCAA05"
+          strokeWidth="9"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circ}`}
+          transform="rotate(-90 64 64)"
+        />
+      )}
+      <text x="64" y="58" textAnchor="middle" dominantBaseline="middle"
+        fontSize="30" fontWeight="700" fill="hsl(215 25% 25%)">
+        {present}
+      </text>
+      <text x="64" y="80" textAnchor="middle"
+        fontSize="12" fill="hsl(215 25% 25% / 0.4)">
+        {present}/{total}
+      </text>
+    </svg>
+  )
+}
+
 // ── Main Dashboard ────────────────────────────────────────────────────────────
 
 export default function Dashboard() {
@@ -181,7 +215,6 @@ export default function Dashboard() {
   const [overtime, setOvertime] = useState<OvertimeRecord[]>([])
   const [dateStr, setDateStr] = useState('')
   const [trendData, setTrendData] = useState<TrendPoint[]>([])
-  const [deductions, setDeductions] = useState(0)
   const [weekOffset, setWeekOffset] = useState(0)
   const [trendLoading, setTrendLoading] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -252,8 +285,6 @@ export default function Dashboard() {
           })
         setOvertime(otRecs)
 
-        const absentCount = monthRecs.filter((a: any) => a.status === 'ABSENT').length
-        setDeductions(absentCount * 80)
       } catch {
         setFetchError(true)
       } finally {
@@ -304,274 +335,188 @@ export default function Dashboard() {
       .catch(() => setTrendLoading(false))
   }, [weekOffset])
 
-  const statCards = [
-    { label: 'Total Staff',    value: stats?.totalStaff ?? 0,    color: 'bg-blue-500/10 text-blue-300',    icon: '👥' },
-    { label: 'Departments',    value: stats?.departments ?? 0,    color: 'bg-purple-500/10 text-purple-300', icon: '🏥' },
-    { label: 'Present Today',  value: stats?.presentToday ?? 0,  color: 'bg-green-500/10 text-green-300',  icon: '✅' },
-    { label: 'On Leave',       value: stats?.onLeaveToday ?? 0,  color: 'bg-amber-500/10 text-amber-300',  icon: '🌴' },
-    { label: 'Absent',         value: stats?.absentToday ?? 0,   color: 'bg-red-500/10 text-red-300',      icon: '❌' },
-    { label: 'Overtime Today', value: stats?.overtimeToday ?? 0, color: 'bg-orange-500/10 text-orange-300', icon: '⏰' },
-    { label: 'Deductions GH₵', value: stats ? `₵${deductions.toLocaleString()}` : '₵0', color: 'bg-rose-500/10 text-rose-300', icon: '💸' },
-  ]
+  const present  = stats?.presentToday ?? 0
+  const total    = stats?.totalStaff ?? 0
+  const rate     = total > 0 ? Math.round((present / total) * 100) : 0
 
-  const narrative = stats && deptStats.length > 0 ? buildNarrative(stats, deptStats, dateStr) : ''
+  const statusHeading = !loading && total === 0
+    ? 'No staff data yet.'
+    : present === total && total > 0
+    ? 'Everyone\'s here.'
+    : rate >= 90
+    ? 'Attendance on target.'
+    : rate >= 70
+    ? 'Attendance looking good.'
+    : present === 0
+    ? 'Awaiting today\'s sync.'
+    : 'Attendance below target.'
+
+  const statusSub = !loading && total === 0
+    ? 'Import your rota files and run a sync to get started.'
+    : `${present} of ${total} expected staff have clocked in today.${stats?.lateToday ? ` ${stats.lateToday} arrived late.` : ''}`
+
+  // Convert trend counts → attendance rate %
+  const chartData = trendData.map(t => ({
+    day: t.day,
+    rate: total > 0 ? Math.round((t.present / total) * 100) : 0,
+    target: 90,
+  }))
+
+  const avgRate = chartData.length > 0
+    ? Math.round(chartData.reduce((s, d) => s + d.rate, 0) / chartData.length)
+    : 0
+
+  // Date label for top-right
+  const now = new Date()
+  const dateLabel = `${DAYS[now.getDay()].toUpperCase()} ${now.getDate()} ${MONTHS_FULL[now.getMonth()].toUpperCase()}`
 
   return (
-    <div className="p-6 max-w-6xl mx-auto space-y-6">
+    <div className="p-8 lg:p-12 max-w-4xl mx-auto space-y-10">
 
-      {/* Header */}
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-white/30">
-            {role ? ROLE_LABELS[role] ?? role : 'Staff'}
-          </p>
-          <h1 className="text-3xl font-bold mt-1 text-white">
-            {greeting()}, {user?.email?.split('@')[0] ?? 'Admin'}
-          </h1>
-          <p className="text-sm text-white/40 mt-1">{today()}</p>
-        </div>
-        <div className="flex items-center gap-2">
+      {/* Top bar */}
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-foreground/50">
+          {greeting()}, <span className="font-medium text-foreground">{user?.email?.split('@')[0] ?? 'Admin'}</span>.
+        </p>
+        <div className="flex items-center gap-3">
+          <span className="text-[11px] font-semibold tracking-[0.14em] uppercase text-foreground/40">
+            {dateLabel}
+          </span>
           <OvertimeBell overtime={overtime} />
           <Link
             href="/report"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-white/10 text-sm font-medium text-white/60 hover:text-white hover:bg-white/[0.04] transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-foreground/10 text-xs font-medium text-foreground/50 hover:text-foreground hover:bg-foreground/5 transition-colors"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
             CEO Report
           </Link>
           <Link
             href="/attendance"
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors"
+            className="px-3 py-1.5 rounded-lg bg-[#DCAA05] text-black text-xs font-semibold hover:bg-[#c99a04] transition-colors"
           >
-            Sync Attendance
+            Sync
           </Link>
         </div>
       </div>
 
-      {/* Narrative summary */}
-      {narrative && (
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-wider text-white/30 mb-2">Today at a Glance</p>
-          <p className="text-sm text-white/70 leading-relaxed">{narrative}</p>
-        </div>
-      )}
+      {/* Main heading */}
+      <h1 className="text-4xl font-bold font-display text-foreground tracking-tight">
+        Attendance overview
+      </h1>
 
       {/* Error banner */}
       {fetchError && (
-        <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-5 py-4 flex items-center gap-3">
-          <svg className="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="rounded-xl border border-red-300 bg-red-50 px-5 py-4 flex items-center gap-3">
+          <svg className="w-5 h-5 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <div>
-            <p className="text-sm font-medium text-red-400">Unable to load dashboard data</p>
-            <p className="text-xs text-white/40 mt-0.5">Check your connection or session, then refresh the page.</p>
-          </div>
+          <p className="text-sm font-medium text-red-600">Unable to load dashboard data. Check your connection and refresh.</p>
         </div>
       )}
 
-      {/* Empty state banner — loaded but no staff in DB */}
-      {!loading && !fetchError && stats?.totalStaff === 0 && (
-        <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-5 py-5 flex items-start gap-4">
-          <svg className="w-6 h-6 text-amber-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-amber-400">No data loaded yet</p>
-            <p className="text-xs text-white/50 mt-1">The database is empty. Import your rota files and run a sync to get started.</p>
-          </div>
-          <Link href="/attendance" className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-amber-500 text-black text-xs font-semibold hover:bg-amber-400 transition-colors">
-            Sync Attendance
-          </Link>
+      {/* Circular progress + status */}
+      <div className="flex items-center gap-10">
+        {loading ? (
+          <div className="w-32 h-32 rounded-full border-[9px] border-foreground/8 animate-pulse shrink-0" />
+        ) : (
+          <CircularProgress present={present} total={total} />
+        )}
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">{statusHeading}</h2>
+          <p className="text-sm text-foreground/50 mt-1 max-w-xs">{statusSub}</p>
+          {!loading && total === 0 && (
+            <Link href="/attendance" className="inline-block mt-3 px-4 py-2 rounded-lg bg-[#DCAA05] text-black text-xs font-semibold hover:bg-[#c99a04] transition-colors">
+              Sync Attendance
+            </Link>
+          )}
         </div>
-      )}
-
-      {/* Stat cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-        {statCards.map((s) => (
-          <div key={s.label} className={`rounded-xl p-4 ${s.color} border border-current/10`}>
-            <div className="text-xl mb-1">{s.icon}</div>
-            <div className="text-2xl font-bold">
-              {loading
-                ? <span className="inline-block h-7 w-10 bg-white/10 rounded-md animate-pulse" />
-                : s.value}
-            </div>
-            <div className="text-xs font-medium opacity-70 mt-0.5">{s.label}</div>
-          </div>
-        ))}
       </div>
 
-      {/* Charts row — 3 columns */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* 7-day attendance trend */}
-        <div className="lg:col-span-2 rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-white text-sm">
-              {weekOffset === 0 ? 'This Week' : weekOffset === -1 ? 'Last Week' : `${Math.abs(weekOffset)} Weeks Ago`}
-            </h2>
+      {/* This week chart */}
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <p className="text-[11px] font-semibold tracking-[0.14em] uppercase text-foreground/40">
+              {weekOffset === 0 ? 'This week' : weekOffset === -1 ? 'Last week' : `${Math.abs(weekOffset)} weeks ago`}
+            </p>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => setWeekOffset(w => w - 1)}
-                className="h-7 w-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors"
+                className="h-6 w-6 rounded flex items-center justify-center text-foreground/30 hover:text-foreground hover:bg-foreground/5 transition-colors"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                 </svg>
               </button>
-              <span className="text-xs text-white/30 px-1 min-w-[80px] text-center">
-                {(() => {
-                  const anchor = new Date()
-                  anchor.setDate(anchor.getDate() + weekOffset * 7)
-                  const dow = anchor.getDay()
-                  const monday = new Date(anchor)
-                  monday.setDate(anchor.getDate() - (dow === 0 ? 6 : dow - 1))
-                  const sunday = new Date(monday)
-                  sunday.setDate(monday.getDate() + 6)
-                  const fmt = (d: Date) => `${d.getDate()} ${d.toLocaleString('en', { month: 'short' })}`
-                  return `${fmt(monday)} – ${fmt(sunday)}`
-                })()}
-              </span>
               <button
                 onClick={() => setWeekOffset(w => Math.min(0, w + 1))}
                 disabled={weekOffset === 0}
-                className="h-7 w-7 rounded-lg flex items-center justify-center text-white/40 hover:text-white hover:bg-white/[0.06] transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
+                className="h-6 w-6 rounded flex items-center justify-center text-foreground/30 hover:text-foreground hover:bg-foreground/5 transition-colors disabled:opacity-20 disabled:cursor-not-allowed"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </div>
           </div>
+          {!trendLoading && chartData.length > 0 && (
+            <p className="text-sm text-foreground/40">{avgRate}% avg attendance</p>
+          )}
+        </div>
+
+        <div className="rounded-xl border border-foreground/8 bg-white p-6">
+          <p className="font-semibold text-foreground text-sm">Daily attendance rate</p>
+          <p className="text-xs text-foreground/40 mt-0.5 mb-5">Percentage of expected staff who clocked in.</p>
+
           {trendLoading ? (
-            <div className="h-[180px] flex items-center justify-center">
-              <div className="w-16 h-16 rounded-full border-4 border-white/5 border-t-white/20 animate-spin" />
+            <div className="h-56 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-full border-4 border-foreground/5 border-t-foreground/20 animate-spin" />
             </div>
-          ) : trendData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={180}>
-              <AreaChart data={trendData} margin={{ top: 4, right: 4, bottom: 0, left: -20 }}>
-                <defs>
-                  <linearGradient id="gPresent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#f59e0b" stopOpacity={0.25} />
-                    <stop offset="95%" stopColor="#f59e0b" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gAbsent" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#ef4444" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#ef4444" stopOpacity={0} />
-                  </linearGradient>
-                  <linearGradient id="gLeave" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.2} />
-                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.04)" />
-                <XAxis dataKey="day" tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fill: 'rgba(255,255,255,0.3)', fontSize: 11 }} axisLine={false} tickLine={false} />
-                <Tooltip
-                  contentStyle={{ background: '#1a1d27', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
-                  labelStyle={{ color: 'rgba(255,255,255,0.6)' }}
-                  itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
+          ) : chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={220}>
+              <LineChart data={chartData} margin={{ top: 4, right: 8, bottom: 0, left: -16 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(220 15% 90%)" />
+                <XAxis dataKey="day" tick={{ fill: 'hsl(215 25% 25% / 0.4)', fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis
+                  tick={{ fill: 'hsl(215 25% 25% / 0.4)', fontSize: 11 }}
+                  axisLine={false} tickLine={false}
+                  domain={[0, 100]}
+                  tickFormatter={v => `${v}%`}
                 />
-                <Legend wrapperStyle={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }} />
-                <Area type="monotone" dataKey="present" stroke="#f59e0b" strokeWidth={2} fill="url(#gPresent)" name="Present" />
-                <Area type="monotone" dataKey="absent"  stroke="#ef4444" strokeWidth={1.5} fill="url(#gAbsent)" name="Absent" />
-                <Area type="monotone" dataKey="leave"   stroke="#3b82f6" strokeWidth={1.5} fill="url(#gLeave)"  name="On Leave" />
-              </AreaChart>
+                <Tooltip
+                  contentStyle={{ background: 'white', border: '1px solid hsl(220 15% 88%)', borderRadius: 8, fontSize: 12 }}
+                  labelStyle={{ color: 'hsl(215 25% 25%)', fontWeight: 600 }}
+                  formatter={(v) => [`${v}%`, 'Attendance rate']}
+                />
+                <Legend
+                  wrapperStyle={{ fontSize: 11, color: 'hsl(215 25% 25% / 0.5)', paddingTop: 16 }}
+                  formatter={(value) => value === 'rate' ? 'Attendance rate' : 'Target 90%'}
+                />
+                <ReferenceLine y={90} stroke="#DCAA05" strokeDasharray="4 4" strokeWidth={1.5} />
+                <Line
+                  type="monotone" dataKey="rate"
+                  stroke="hsl(215 30% 30%)" strokeWidth={2}
+                  dot={{ r: 4, fill: 'hsl(215 30% 30%)', strokeWidth: 0 }}
+                  activeDot={{ r: 5 }}
+                  name="rate"
+                />
+                <Line
+                  type="monotone" dataKey="target"
+                  stroke="#DCAA05" strokeWidth={1.5}
+                  strokeDasharray="4 4"
+                  dot={false}
+                  name="target"
+                />
+              </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="h-[180px] flex flex-col items-center justify-center gap-2 text-center px-6">
-              <p className="text-white/25 text-sm">No attendance synced for this period</p>
-              {weekOffset === 0 && <Link href="/attendance" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">Sync now →</Link>}
+            <div className="h-56 flex flex-col items-center justify-center gap-2 text-center px-6">
+              <p className="text-foreground/25 text-sm">No attendance synced for this period</p>
+              {weekOffset === 0 && (
+                <Link href="/attendance" className="text-xs text-[#DCAA05] hover:underline">Sync now</Link>
+              )}
             </div>
           )}
         </div>
-
-        {/* Attendance status pie */}
-        <div className="rounded-xl border border-white/[0.06] bg-white/[0.02] p-5">
-          <h2 className="font-semibold text-white mb-4 text-sm">Today&apos;s Status</h2>
-          {loading ? (
-            <div className="h-[180px] flex items-center justify-center">
-              <div className="w-24 h-24 rounded-full border-4 border-white/5 border-t-white/20 animate-spin" />
-            </div>
-          ) : fetchError ? (
-            <div className="h-[180px] flex items-center justify-center text-white/30 text-xs text-center px-4">
-              Could not load attendance data
-            </div>
-          ) : stats && (stats.presentToday + stats.absentToday + stats.onLeaveToday + stats.lateToday) > 0 ? (
-            <>
-              <ResponsiveContainer width="100%" height={140}>
-                <PieChart>
-                  <Pie
-                    data={[
-                      { name: 'Present',  value: stats.presentToday,  color: '#22c55e' },
-                      { name: 'Absent',   value: stats.absentToday,   color: '#ef4444' },
-                      { name: 'On Leave', value: stats.onLeaveToday,  color: '#3b82f6' },
-                      { name: 'Late',     value: stats.lateToday,     color: '#f59e0b' },
-                    ].filter(d => d.value > 0)}
-                    cx="50%" cy="50%"
-                    innerRadius={40} outerRadius={60}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {[
-                      { name: 'Present',  value: stats.presentToday,  color: '#22c55e' },
-                      { name: 'Absent',   value: stats.absentToday,   color: '#ef4444' },
-                      { name: 'On Leave', value: stats.onLeaveToday,  color: '#3b82f6' },
-                      { name: 'Late',     value: stats.lateToday,     color: '#f59e0b' },
-                    ].filter(d => d.value > 0).map((entry, i) => (
-                      <Cell key={i} fill={entry.color} fillOpacity={0.85} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ background: '#1a1d27', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 8, fontSize: 12 }}
-                    itemStyle={{ color: 'rgba(255,255,255,0.7)' }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="grid grid-cols-2 gap-1.5 mt-2">
-                {[
-                  { label: 'Present',  value: stats.presentToday,  color: '#22c55e' },
-                  { label: 'Absent',   value: stats.absentToday,   color: '#ef4444' },
-                  { label: 'On Leave', value: stats.onLeaveToday,  color: '#3b82f6' },
-                  { label: 'Late',     value: stats.lateToday,     color: '#f59e0b' },
-                ].map(s => (
-                  <div key={s.label} className="flex items-center gap-1.5">
-                    <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
-                    <span className="text-[11px] text-white/40">{s.label}</span>
-                    <span className="text-[11px] font-bold ml-auto" style={{ color: s.color }}>{s.value}</span>
-                  </div>
-                ))}
-              </div>
-            </>
-          ) : (
-            <div className="h-[180px] flex flex-col items-center justify-center gap-3 text-center px-4">
-              <p className="text-white/30 text-xs">No attendance recorded today</p>
-              <Link href="/attendance" className="text-xs text-amber-400 hover:text-amber-300 transition-colors">Sync now →</Link>
-            </div>
-          )}
-        </div>
-      </div>
-
-
-      {/* Quick links */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-        {[
-          { href: '/roster',     label: 'Duty Roster',  desc: 'Manage shifts',          icon: '📅', color: 'border-amber-500/20 hover:bg-amber-500/5' },
-          { href: '/attendance', label: 'Attendance',   desc: 'Clock-in / out',          icon: '🕐', color: 'border-green-500/20 hover:bg-green-500/5' },
-          { href: '/schedule',   label: 'Schedule',     desc: 'Roster vs actual',        icon: '📋', color: 'border-sky-500/20 hover:bg-sky-500/5' },
-          { href: '/report',     label: 'CEO Report',   desc: 'Monthly performance',     icon: '📊', color: 'border-purple-500/20 hover:bg-purple-500/5' },
-          { href: '/departments',label: 'Departments',  desc: 'View all staff',          icon: '🏥', color: 'border-blue-500/20 hover:bg-blue-500/5' },
-        ].map((l) => (
-          <Link
-            key={l.href}
-            href={l.href}
-            className={`rounded-xl border ${l.color} bg-white/[0.02] p-4 flex flex-col gap-2 transition-all`}
-          >
-            <span className="text-2xl">{l.icon}</span>
-            <span className="font-semibold text-white text-sm">{l.label}</span>
-            <span className="text-xs text-white/40">{l.desc}</span>
-          </Link>
-        ))}
       </div>
 
     </div>

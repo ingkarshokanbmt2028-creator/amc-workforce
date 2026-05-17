@@ -43,36 +43,36 @@ function AttStatus({ rec }: { rec: AttRecord }) {
   const isOT  = (rec.totalHours ?? 0) > 9
 
   if (rec.status === 'ABSENT')
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-400 border border-red-500/20">Absent</span>
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-600 border border-red-500/20">Absent</span>
   if (rec.status === 'ON_LEAVE')
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-400 border border-blue-500/20">On Leave</span>
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-600 border border-blue-500/20">On Leave</span>
   if (noIn && noOut)
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-300 border border-red-500/20">⚠ Missed Both</span>
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-600 border border-red-500/20">⚠ Missed Both</span>
   if (noIn)
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20">No Clock-In</span>
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">No Clock-In</span>
   if (noOut)
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-300 border border-amber-500/20">No Clock-Out</span>
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">No Clock-Out</span>
   if (isOT)
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-300 border border-violet-500/20">Overtime</span>
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-700 border border-violet-500/20">Overtime</span>
   if (rec.status === 'LATE')
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/10 text-orange-300 border border-orange-500/20">Late</span>
-  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/10 text-green-400 border border-green-500/20">✓ Present</span>
+    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/10 text-orange-700 border border-orange-500/20">Late</span>
+  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/10 text-green-600 border border-green-500/20">✓ Present</span>
 }
 
 // ── Employee row (Osiyo pattern adapted) ─────────────────────────────────────
 
 const SHIFT_BADGE: Record<string, string> = {
-  MORNING:        'bg-amber-500/15 text-amber-300',
-  AFTERNOON:      'bg-orange-500/15 text-orange-300',
-  DAY:            'bg-sky-500/15 text-sky-300',
-  PM_SHIFT:       'bg-purple-500/15 text-purple-300',
-  NIGHT:          'bg-indigo-500/15 text-indigo-300',
-  LATE:           'bg-rose-500/15 text-rose-300',
-  ON_CALL:        'bg-teal-500/15 text-teal-300',
-  OFF:            'bg-white/5 text-white/30',
+  MORNING:        'bg-amber-500/15 text-amber-700',
+  AFTERNOON:      'bg-orange-500/15 text-orange-700',
+  DAY:            'bg-sky-500/15 text-sky-700',
+  PM_SHIFT:       'bg-purple-500/15 text-purple-700',
+  NIGHT:          'bg-indigo-500/15 text-indigo-700',
+  LATE:           'bg-rose-500/15 text-rose-700',
+  ON_CALL:        'bg-teal-500/15 text-teal-700',
+  OFF:            'bg-white/5 text-foreground/40',
   ANNUAL_LEAVE:   'bg-green-500/15 text-green-300',
-  MATERNITY_LEAVE:'bg-pink-500/15 text-pink-300',
-  SICK_LEAVE:     'bg-red-500/15 text-red-300',
+  MATERNITY_LEAVE:'bg-pink-500/15 text-pink-700',
+  SICK_LEAVE:     'bg-red-500/15 text-red-600',
 }
 
 const SHIFT_SHORT: Record<string, string> = {
@@ -87,21 +87,21 @@ function EmployeeRow({ emp, rec, scheduledShift, onClick }: { emp: Employee; rec
   return (
     <button
       onClick={onClick}
-      className="w-full bg-card rounded-xl border border-white/[0.06] px-4 py-3 flex items-center justify-between gap-4 hover:bg-white/[0.04] hover:border-white/10 transition-all text-left group"
+      className="w-full bg-white rounded-xl border border-foreground/10 px-4 py-3 flex items-center justify-between gap-4 hover:bg-white hover:border-foreground/15 transition-all text-left group"
     >
       {/* Avatar + name */}
       <div className="flex items-center gap-3 min-w-0">
-        <div className="h-9 w-9 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white/60 flex-shrink-0 group-hover:bg-white/15 transition-colors">
+        <div className="h-9 w-9 rounded-full bg-foreground/8 flex items-center justify-center text-xs font-bold text-foreground/60 flex-shrink-0 group-hover:bg-foreground/10 transition-colors">
           {emp.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-white truncate">{emp.name}</p>
+            <p className="text-sm font-semibold text-foreground truncate">{emp.name}</p>
             {emp.employeeType === 'LOCUM' && (
-              <span className="flex-shrink-0 px-1 py-0.5 rounded text-[8px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">LOCUM</span>
+              <span className="flex-shrink-0 px-1 py-0.5 rounded text-[8px] font-bold bg-blue-500/20 text-blue-600 border border-blue-500/30">LOCUM</span>
             )}
           </div>
-          <p className="text-xs text-white/40 truncate">{emp.staffId} · {emp.position || emp.department?.name}</p>
+          <p className="text-xs text-foreground/50 truncate">{emp.staffId} · {emp.position || emp.department?.name}</p>
         </div>
       </div>
 
@@ -109,27 +109,27 @@ function EmployeeRow({ emp, rec, scheduledShift, onClick }: { emp: Employee; rec
       <div className="hidden md:flex items-center gap-6 flex-shrink-0">
         {scheduledShift && (
           <div className="text-center min-w-[44px]">
-            <p className="text-[10px] text-white/30">Roster</p>
-            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${SHIFT_BADGE[scheduledShift] ?? 'bg-white/5 text-white/30'}`}>
+            <p className="text-[10px] text-foreground/40">Roster</p>
+            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${SHIFT_BADGE[scheduledShift] ?? 'bg-white/5 text-foreground/40'}`}>
               {SHIFT_SHORT[scheduledShift] ?? scheduledShift}
             </span>
           </div>
         )}
         <div className="text-center min-w-[56px]">
-          <p className="text-[10px] text-white/30">Clock In</p>
-          <p className={`text-xs font-mono font-semibold ${rec?.clockIn ? 'text-green-400' : 'text-white/20'}`}>
+          <p className="text-[10px] text-foreground/40">Clock In</p>
+          <p className={`text-xs font-mono font-semibold ${rec?.clockIn ? 'text-green-600' : 'text-foreground/30'}`}>
             {rec ? fmtTime(rec.clockIn) : '—'}
           </p>
         </div>
         <div className="text-center min-w-[56px]">
-          <p className="text-[10px] text-white/30">Clock Out</p>
-          <p className={`text-xs font-mono font-semibold ${rec?.clockOut ? 'text-white/60' : rec ? 'text-red-400/60' : 'text-white/20'}`}>
+          <p className="text-[10px] text-foreground/40">Clock Out</p>
+          <p className={`text-xs font-mono font-semibold ${rec?.clockOut ? 'text-foreground/60' : rec ? 'text-red-600/60' : 'text-foreground/30'}`}>
             {rec ? fmtTime(rec.clockOut) : '—'}
           </p>
         </div>
         <div className="text-center min-w-[40px]">
-          <p className="text-[10px] text-white/30">Hours</p>
-          <p className={`text-xs font-semibold ${hours > 9 ? 'text-violet-400' : hours > 0 ? 'text-white/70' : 'text-white/20'}`}>
+          <p className="text-[10px] text-foreground/40">Hours</p>
+          <p className={`text-xs font-semibold ${hours > 9 ? 'text-violet-400' : hours > 0 ? 'text-foreground/70' : 'text-foreground/30'}`}>
             {hours > 0 ? `${hours.toFixed(1)}h` : '—'}
           </p>
         </div>
@@ -137,8 +137,8 @@ function EmployeeRow({ emp, rec, scheduledShift, onClick }: { emp: Employee; rec
 
       {/* Status + arrow */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        {rec ? <AttStatus rec={rec} /> : <span className="text-[10px] text-white/20">No record</span>}
-        <svg className="w-3.5 h-3.5 text-white/20 group-hover:text-white/40 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        {rec ? <AttStatus rec={rec} /> : <span className="text-[10px] text-foreground/30">No record</span>}
+        <svg className="w-3.5 h-3.5 text-foreground/30 group-hover:text-foreground/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </div>
@@ -272,15 +272,15 @@ export default function AttendancePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-white">Attendance</h1>
-          <p className="text-sm text-white/40 mt-0.5">{lastSyncLabel(lastSync)}</p>
+          <h1 className="text-2xl font-bold text-foreground">Attendance</h1>
+          <p className="text-sm text-foreground/50 mt-0.5">{lastSyncLabel(lastSync)}</p>
         </div>
         <div className="flex items-center gap-2">
           <input
             type="date"
             value={date}
             onChange={e => { setDate(e.target.value); setVisibleCount(20) }}
-            className="rounded-lg border border-white/10 bg-white/[0.04] px-3 py-2 text-sm text-white focus:outline-none focus:ring-1 focus:ring-white/20"
+            className="rounded-lg border border-foreground/15 bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
           />
           <button
             onClick={handleSync}
@@ -299,14 +299,14 @@ export default function AttendancePage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {[
           { label: 'Total Employees', value: stats.total,              icon: '👥', color: 'text-blue-300',   bg: 'bg-blue-500/10',   border: 'border-blue-500/20' },
-          { label: 'Missed Clock-In', value: stats.missedIn,           icon: '⚠',  color: 'text-amber-300',  bg: 'bg-amber-500/10',  border: 'border-amber-500/20' },
-          { label: 'Missed Clock-Out',value: stats.missedOut,          icon: '🕐', color: 'text-red-300',    bg: 'bg-red-500/10',    border: 'border-red-500/20' },
+          { label: 'Missed Clock-In', value: stats.missedIn,           icon: '⚠',  color: 'text-amber-700',  bg: 'bg-amber-500/10',  border: 'border-amber-500/20' },
+          { label: 'Missed Clock-Out',value: stats.missedOut,          icon: '🕐', color: 'text-red-600',    bg: 'bg-red-500/10',    border: 'border-red-500/20' },
           { label: 'Avg Hours/Day',   value: stats.avgHrs.toFixed(1),  icon: '📈', color: 'text-green-300',  bg: 'bg-green-500/10',  border: 'border-green-500/20' },
         ].map(s => (
           <div key={s.label} className={`rounded-xl border ${s.border} ${s.bg} p-4 flex items-center gap-3`}>
             <div className={`${s.bg} rounded-lg p-2 text-xl`}>{s.icon}</div>
             <div>
-              <p className="text-xs text-white/40 font-medium">{s.label}</p>
+              <p className="text-xs text-foreground/50 font-medium">{s.label}</p>
               <p className={`text-2xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
             </div>
           </div>
@@ -317,7 +317,7 @@ export default function AttendancePage() {
       <select
         value={activeDept}
         onChange={e => { setActiveDept(e.target.value); setVisibleCount(20) }}
-        className="rounded-lg border border-white/10 bg-white/[0.04] text-sm text-white px-3 py-2 focus:outline-none focus:ring-1 focus:ring-white/20 min-w-[200px]"
+        className="rounded-lg border border-foreground/15 bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40 min-w-[200px]"
       >
         <option value="all">All Departments · {employees.length}</option>
         {departments.map(d => {
@@ -329,17 +329,17 @@ export default function AttendancePage() {
 
       {/* Attendance filters (Osiyo's AttendanceFilters) */}
       <div className="flex items-center gap-2 flex-wrap">
-        <svg className="w-4 h-4 text-white/30 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-4 h-4 text-foreground/40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
         </svg>
         {FILTERS.map(f => {
           const active = filter === f.value
           const colorMap: Record<string, string> = {
-            amber:  active ? 'bg-amber-500/15 text-amber-300 border-amber-500/30' : 'border-white/10 text-white/40 hover:border-amber-500/20 hover:text-amber-300/70',
-            red:    active ? 'bg-red-500/15 text-red-300 border-red-500/30' : 'border-white/10 text-white/40 hover:border-red-500/20 hover:text-red-300/70',
-            violet: active ? 'bg-violet-500/15 text-violet-300 border-violet-500/30' : 'border-white/10 text-white/40 hover:border-violet-500/20 hover:text-violet-300/70',
-            blue:   active ? 'bg-blue-500/15 text-blue-300 border-blue-500/30' : 'border-white/10 text-white/40 hover:border-blue-500/20 hover:text-blue-300/70',
-            '':     active ? 'bg-white text-black border-white' : 'border-white/10 text-white/40 hover:border-white/20 hover:text-white/70',
+            amber:  active ? 'bg-amber-500/15 text-amber-700 border-amber-500/30' : 'border-foreground/15 text-foreground/50 hover:border-amber-500/20 hover:text-amber-700/70',
+            red:    active ? 'bg-red-500/15 text-red-600 border-red-500/30' : 'border-foreground/15 text-foreground/50 hover:border-red-500/20 hover:text-red-600/70',
+            violet: active ? 'bg-violet-500/15 text-violet-700 border-violet-500/30' : 'border-foreground/15 text-foreground/50 hover:border-violet-500/20 hover:text-violet-700/70',
+            blue:   active ? 'bg-blue-500/15 text-blue-300 border-blue-500/30' : 'border-foreground/15 text-foreground/50 hover:border-blue-500/20 hover:text-blue-300/70',
+            '':     active ? 'bg-foreground text-background border-foreground' : 'border-foreground/15 text-foreground/50 hover:border-foreground/20 hover:text-foreground/70',
           }
           return (
             <button
@@ -355,7 +355,7 @@ export default function AttendancePage() {
 
       {/* Search */}
       <div className="relative">
-        <svg className="absolute left-3 top-2.5 w-4 h-4 text-white/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="absolute left-3 top-2.5 w-4 h-4 text-foreground/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
@@ -363,12 +363,12 @@ export default function AttendancePage() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by name or staff ID…"
-          className="w-full pl-9 pr-4 py-2 rounded-lg border border-white/10 bg-white/[0.03] text-sm text-white placeholder:text-white/30 focus:outline-none focus:ring-1 focus:ring-white/20"
+          className="w-full pl-9 pr-4 py-2 rounded-lg border border-foreground/15 bg-white/60 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
         />
       </div>
 
       {/* Count */}
-      <p className="text-xs text-white/30">Showing {Math.min(visibleCount, filtered.length)} of {filtered.length} employees</p>
+      <p className="text-xs text-foreground/40">Showing {Math.min(visibleCount, filtered.length)} of {filtered.length} employees</p>
 
       {/* Employee list (Osiyo's EmployeeList pattern) */}
       <div className="space-y-2">
@@ -384,13 +384,13 @@ export default function AttendancePage() {
 
         {filtered.length === 0 && (
           <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-14 h-14 rounded-full bg-white/[0.04] flex items-center justify-center">
-              <svg className="w-7 h-7 text-white/20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="w-14 h-14 rounded-full bg-white flex items-center justify-center">
+              <svg className="w-7 h-7 text-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
             </div>
-            <p className="text-sm font-semibold text-white/40">No employees match your filters</p>
-            <p className="text-xs text-white/20">
+            <p className="text-sm font-semibold text-foreground/50">No employees match your filters</p>
+            <p className="text-xs text-foreground/30">
               {search ? `No results for "${search}"` : filter !== 'all' ? 'Try changing the filter' : 'No staff in this department'}
             </p>
           </div>
@@ -399,7 +399,7 @@ export default function AttendancePage() {
         {filtered.length > visibleCount && (
           <button
             onClick={() => setVisibleCount(v => v + 20)}
-            className="w-full py-3 rounded-xl border border-white/[0.06] text-sm text-white/40 hover:text-white/70 hover:bg-white/[0.03] transition-all"
+            className="w-full py-3 rounded-xl border border-foreground/10 text-sm text-foreground/50 hover:text-foreground/70 hover:bg-white/60 transition-all"
           >
             Load more ({filtered.length - visibleCount} remaining)
           </button>
