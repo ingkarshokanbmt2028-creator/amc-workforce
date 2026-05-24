@@ -7,7 +7,7 @@ import { useAuth, ROLE_LABELS } from '@/lib/auth'
 import {
   LogOut, Home, CalendarDays, Clock, CheckSquare,
   BarChart3, Download, BookOpen, Settings,
-  PanelLeftClose, PanelLeftOpen, TrendingUp, Users, AlertTriangle,
+  PanelLeftClose, PanelLeftOpen, TrendingUp, AlertTriangle, Timer,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -20,10 +20,10 @@ const NAV_DAILY = [
 ]
 
 const NAV_METRICS = [
-  { href: '/attendance/compliance', label: 'Shift Adherence', Icon: CheckSquare },
-  { href: '/departments',           label: 'Absenteeism',     Icon: AlertTriangle },
-  { href: '/departments',           label: 'Punctuality',     Icon: TrendingUp },
-  { href: '/departments',           label: 'Departments',     Icon: Users },
+  { href: '/attendance/compliance',  label: 'Shift Adherence', Icon: CheckSquare  },
+  { href: '/metrics/absenteeism',    label: 'Absenteeism',     Icon: AlertTriangle },
+  { href: '/metrics/punctuality',    label: 'Punctuality',     Icon: TrendingUp   },
+  { href: '/metrics/overtime',       label: 'Overtime',        Icon: Timer        },
 ]
 
 const NAV_TOOLS = [
