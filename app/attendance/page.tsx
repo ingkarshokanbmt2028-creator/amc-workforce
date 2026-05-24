@@ -317,7 +317,7 @@ export default function AttendancePage() {
       <select
         value={activeDept}
         onChange={e => { setActiveDept(e.target.value); setVisibleCount(20) }}
-        className="rounded-lg border border-foreground/15 bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40 min-w-[200px]"
+        className="rounded-lg border border-foreground/15 bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40 min-w-[200px]"
       >
         <option value="all">All Departments · {employees.length}</option>
         {departments.map(d => {
