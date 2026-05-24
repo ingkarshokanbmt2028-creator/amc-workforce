@@ -33,18 +33,20 @@ function deptMetrics(
   recByEmp: Map<string, AttRecord>,
   rosteredIds: Set<string>,
 ) {
-  const withRecord = empIds.filter(id => recByEmp.has(id))
-  const clockedIn  = withRecord.filter(id => recByEmp.get(id)?.clockIn)
-  const onTime     = clockedIn.filter(id => recByEmp.get(id)?.status !== 'LATE')
-  const overtime   = clockedIn.filter(id => (recByEmp.get(id)?.totalHours ?? 0) > 9)
-  const rostered   = empIds.filter(id => rosteredIds.has(id))
-  const adhered    = rostered.filter(id => recByEmp.get(id)?.clockIn)
+  const withRecord  = empIds.filter(id => recByEmp.has(id))
+  const clockedIn   = withRecord.filter(id => recByEmp.get(id)?.clockIn)
+  const onTime      = clockedIn.filter(id => recByEmp.get(id)?.status !== 'LATE')
+  const overtime    = clockedIn.filter(id => (recByEmp.get(id)?.totalHours ?? 0) > 9)
+  const rostered    = empIds.filter(id => rosteredIds.has(id))
+  const adhered     = rostered.filter(id => recByEmp.get(id)?.clockIn)
+  const absent      = withRecord.filter(id => recByEmp.get(id)?.status === 'ABSENT' || !recByEmp.get(id)?.clockIn)
 
-  const punctuality   = clockedIn.length > 0 ? Math.round((onTime.length / clockedIn.length) * 100) : null
-  const overtimeRate  = clockedIn.length > 0 ? Math.round((overtime.length / clockedIn.length) * 100) : null
-  const shiftAdherence = rostered.length > 0 ? Math.round((adhered.length / rostered.length) * 100) : null
+  const punctuality    = clockedIn.length > 0   ? Math.round((onTime.length / clockedIn.length) * 100) : null
+  const overtimeRate   = clockedIn.length > 0   ? Math.round((overtime.length / clockedIn.length) * 100) : null
+  const shiftAdherence = rostered.length > 0    ? Math.round((adhered.length / rostered.length) * 100) : null
+  const absenteeism    = withRecord.length > 0  ? Math.round((absent.length / withRecord.length) * 100) : null
 
-  return { punctuality, overtimeRate, shiftAdherence }
+  return { punctuality, overtimeRate, shiftAdherence, absenteeism }
 }
 
 const METRIC_CONFIG = [
@@ -71,6 +73,14 @@ const METRIC_CONFIG = [
     explanation: 'Measures how many scheduled employees showed up. A low adherence rate often signals no-shows or roster gaps.',
     target: 95,
     higherIsBetter: true,
+  },
+  {
+    key: 'absenteeism' as const,
+    label: 'Absenteeism rate',
+    description: 'Share of staff who were absent or did not clock in today',
+    explanation: 'Counts staff with no clock-in or an ABSENT status as absent. A high absenteeism rate may indicate scheduling, wellbeing, or management issues.',
+    target: 10,
+    higherIsBetter: false,
   },
 ]
 
@@ -128,6 +138,10 @@ function DepartmentsPageInner() {
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [expandedDepts, setExpandedDepts] = useState<Set<string>>(new Set())
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [addForm, setAddForm] = useState({ name: '', staffId: '', departmentId: '', position: '', employeeType: 'PERMANENT', location: 'ACCRA', expectedMonthlyHours: '180' })
+  const [addError, setAddError] = useState('')
+  const [addLoading, setAddLoading] = useState(false)
 
   const today = new Date().toISOString().slice(0, 10)
   const month = parseInt(today.slice(5, 7))
@@ -191,14 +205,133 @@ function DepartmentsPageInner() {
 
   const activeDeptObj = departments.find(d => d.id === activeDept)
 
+  async function handleAddEmployee(e: React.FormEvent) {
+    e.preventDefault()
+    setAddError('')
+    if (!addForm.name || !addForm.staffId || !addForm.departmentId || !addForm.position) {
+      setAddError('Name, Staff ID, Department, and Position are required.')
+      return
+    }
+    setAddLoading(true)
+    const res = await fetch('/api/employees', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(addForm),
+    })
+    setAddLoading(false)
+    if (!res.ok) {
+      const data = await res.json()
+      setAddError(data.error ?? 'Failed to create employee')
+      return
+    }
+    const newEmp = await res.json()
+    setEmployees(prev => [...prev, newEmp].sort((a, b) => a.name.localeCompare(b.name)))
+    setShowAddModal(false)
+    setAddForm({ name: '', staffId: '', departmentId: '', position: '', employeeType: 'PERMANENT', location: 'ACCRA', expectedMonthlyHours: '180' })
+  }
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-6 space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">All Departments</h1>
-        <p className="text-sm text-foreground/50 mt-1">
-          {loading ? 'Loading...' : `${employees.length} staff across ${departments.length} departments`}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">All Departments</h1>
+          <p className="text-sm text-foreground/50 mt-1">
+            {loading ? 'Loading...' : `${employees.length} staff across ${departments.length} departments`}
+          </p>
+        </div>
+        <button
+          onClick={() => setShowAddModal(true)}
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Add Employee
+        </button>
       </div>
+
+      {/* Add Employee Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-card border border-foreground/15 rounded-2xl w-full max-w-md shadow-2xl">
+            <div className="px-6 py-5 border-b border-foreground/10 flex items-center justify-between">
+              <h2 className="text-base font-bold text-foreground">Add Employee</h2>
+              <button onClick={() => setShowAddModal(false)} className="text-foreground/40 hover:text-foreground/70 transition-colors">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <form onSubmit={handleAddEmployee} className="px-6 py-5 space-y-4">
+              {addError && <p className="text-xs text-red-500 bg-red-500/10 border border-red-500/20 rounded-lg px-3 py-2">{addError}</p>}
+              {[
+                { key: 'name',     label: 'Full Name',  placeholder: 'e.g. Kofi Mensah' },
+                { key: 'staffId',  label: 'Staff ID',   placeholder: 'e.g. AMC-0042' },
+                { key: 'position', label: 'Position',   placeholder: 'e.g. Radiographer' },
+                { key: 'location', label: 'Location',   placeholder: 'ACCRA' },
+              ].map(f => (
+                <div key={f.key}>
+                  <label className="block text-xs font-medium text-foreground/60 mb-1">{f.label}</label>
+                  <input
+                    value={addForm[f.key as keyof typeof addForm]}
+                    onChange={ev => setAddForm(p => ({ ...p, [f.key]: ev.target.value }))}
+                    placeholder={f.placeholder}
+                    className="w-full px-3 py-2 rounded-lg border border-foreground/15 bg-background text-sm text-foreground placeholder:text-foreground/30 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+                  />
+                </div>
+              ))}
+              <div>
+                <label className="block text-xs font-medium text-foreground/60 mb-1">Department</label>
+                <select
+                  value={addForm.departmentId}
+                  onChange={ev => setAddForm(p => ({ ...p, departmentId: ev.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-foreground/15 bg-background text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+                >
+                  <option value="">Select department…</option>
+                  {departments.map(d => <option key={d.id} value={d.id}>{d.name}</option>)}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-foreground/60 mb-1">Employee Type</label>
+                <select
+                  value={addForm.employeeType}
+                  onChange={ev => setAddForm(p => ({ ...p, employeeType: ev.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-foreground/15 bg-background text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+                >
+                  <option value="PERMANENT">Permanent</option>
+                  <option value="LOCUM">Locum</option>
+                  <option value="CONTRACT">Contract</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-foreground/60 mb-1">Expected Monthly Hours</label>
+                <input
+                  type="number"
+                  value={addForm.expectedMonthlyHours}
+                  onChange={ev => setAddForm(p => ({ ...p, expectedMonthlyHours: ev.target.value }))}
+                  className="w-full px-3 py-2 rounded-lg border border-foreground/15 bg-background text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
+                />
+              </div>
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="flex-1 px-4 py-2 rounded-lg border border-foreground/15 text-sm text-foreground/60 hover:text-foreground hover:border-foreground/25 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={addLoading}
+                  className="flex-1 px-4 py-2 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 disabled:opacity-50 transition-colors"
+                >
+                  {addLoading ? 'Adding…' : 'Add Employee'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Search */}
       <div className="relative">
@@ -288,6 +421,12 @@ function DepartmentsPageInner() {
                       <div className="text-center">
                         <p className="text-[9px] text-foreground/40 uppercase tracking-wide">Adherence</p>
                         <p className={`text-sm font-black ${m.shiftAdherence >= 95 ? 'text-green-500' : 'text-red-500'}`}>{m.shiftAdherence}%</p>
+                      </div>
+                    )}
+                    {m.absenteeism !== null && (
+                      <div className="text-center">
+                        <p className="text-[9px] text-foreground/40 uppercase tracking-wide">Absent</p>
+                        <p className={`text-sm font-black ${m.absenteeism <= 10 ? 'text-green-500' : 'text-red-500'}`}>{m.absenteeism}%</p>
                       </div>
                     )}
                     <ChevronDown className={`h-4 w-4 text-foreground/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />

@@ -1,6 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import employeesData from '@/lib/employees-data.json'
 
+export async function POST(req: NextRequest) {
+  try {
+    const body = await req.json()
+    const { prisma } = await import('@/lib/prisma')
+    const employee = await prisma.employee.create({
+      data: {
+        staffId:              body.staffId,
+        name:                 body.name,
+        departmentId:         body.departmentId,
+        position:             body.position,
+        location:             body.location ?? 'ACCRA',
+        employeeType:         body.employeeType ?? 'PERMANENT',
+        status:               'ACTIVE',
+        expectedMonthlyHours: body.expectedMonthlyHours ? parseFloat(body.expectedMonthlyHours) : 180,
+      },
+      include: { department: true },
+    })
+    return NextResponse.json(employee, { status: 201 })
+  } catch (err: unknown) {
+    const msg = err instanceof Error ? err.message : 'Failed to create employee'
+    return NextResponse.json({ error: msg }, { status: 400 })
+  }
+}
+
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const departmentCode = searchParams.get('departmentCode')
