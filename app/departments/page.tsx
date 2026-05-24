@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, Suspense } from 'react'
+import { useEffect, useState, Suspense, useMemo } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { Users, Search, ChevronDown } from 'lucide-react'
 
@@ -19,25 +19,80 @@ interface Department {
   code: string
 }
 
+interface AttRecord {
+  employeeId: string
+  status: string
+  clockIn?: string | null
+  clockOut?: string | null
+  totalHours?: number
+  lateMinutes?: number
+}
+
+function deptMetrics(
+  empIds: string[],
+  recByEmp: Map<string, AttRecord>,
+  rosteredIds: Set<string>,
+) {
+  const withRecord = empIds.filter(id => recByEmp.has(id))
+  const clockedIn  = withRecord.filter(id => recByEmp.get(id)?.clockIn)
+  const onTime     = clockedIn.filter(id => recByEmp.get(id)?.status !== 'LATE')
+  const overtime   = clockedIn.filter(id => (recByEmp.get(id)?.totalHours ?? 0) > 9)
+  const rostered   = empIds.filter(id => rosteredIds.has(id))
+  const adhered    = rostered.filter(id => recByEmp.get(id)?.clockIn)
+
+  const punctuality   = clockedIn.length > 0 ? Math.round((onTime.length / clockedIn.length) * 100) : null
+  const overtimeRate  = clockedIn.length > 0 ? Math.round((overtime.length / clockedIn.length) * 100) : null
+  const shiftAdherence = rostered.length > 0 ? Math.round((adhered.length / rostered.length) * 100) : null
+
+  return { punctuality, overtimeRate, shiftAdherence }
+}
+
+function MetricPill({ label, value, color }: { label: string; value: number | null; color: string }) {
+  if (value === null) return null
+  return (
+    <div className={`flex flex-col items-center px-3 py-1.5 rounded-lg ${color}`}>
+      <span className="text-[11px] font-bold leading-none">{value}%</span>
+      <span className="text-[9px] mt-0.5 opacity-70 whitespace-nowrap">{label}</span>
+    </div>
+  )
+}
+
 function DepartmentsPageInner() {
   const searchParams = useSearchParams()
   const [departments, setDepartments] = useState<Department[]>([])
   const [employees, setEmployees] = useState<Employee[]>([])
+  const [attendance, setAttendance] = useState<AttRecord[]>([])
+  const [rosteredIds, setRosteredIds] = useState<Set<string>>(new Set())
   const [activeDept, setActiveDept] = useState<string>('ALL')
   const [search, setSearch] = useState('')
   const [loading, setLoading] = useState(true)
   const [expandedDepts, setExpandedDepts] = useState<Set<string>>(new Set())
 
+  const today = new Date().toISOString().slice(0, 10)
+  const month = parseInt(today.slice(5, 7))
+  const year  = parseInt(today.slice(0, 4))
+
   useEffect(() => {
     Promise.all([
       fetch('/api/departments').then(r => r.json()),
       fetch('/api/employees').then(r => r.json()),
-    ]).then(([depts, emps]) => {
+      fetch(`/api/attendance?date=${today}`).then(r => r.json()),
+      fetch(`/api/roster?month=${month}&year=${year}`).then(r => r.ok ? r.json() : []),
+    ]).then(([depts, emps, attData, rosters]) => {
       setDepartments(depts)
       setEmployees(emps)
+      setAttendance(attData.attendance ?? [])
+
+      const ids = new Set<string>()
+      for (const roster of (rosters as { slots: { employeeId: string; date: string }[] }[])) {
+        for (const slot of roster.slots) {
+          if (slot.date.slice(0, 10) === today) ids.add(slot.employeeId)
+        }
+      }
+      setRosteredIds(ids)
       setLoading(false)
     })
-  }, [])
+  }, [today, month, year])
 
   // Sync active dept from URL param
   useEffect(() => {
@@ -48,6 +103,8 @@ function DepartmentsPageInner() {
       setActiveDept('ALL')
     }
   }, [searchParams])
+
+  const recByEmp = useMemo(() => new Map(attendance.map(r => [r.employeeId, r])), [attendance])
 
   const filtered = employees.filter(e => {
     const matchDept = activeDept === 'ALL' || e.departmentId === activeDept
@@ -89,7 +146,7 @@ function DepartmentsPageInner() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Search by name, staff ID, or position..."
-          className="w-full pl-10 pr-4 py-3 rounded-xl bg-white border border-foreground/12 text-sm text-foreground placeholder:text-foreground/30 outline-none focus:ring-1 focus:ring-amber-500/50"
+          className="w-full pl-10 pr-4 py-3 rounded-xl bg-card border border-foreground/12 text-sm text-foreground placeholder:text-foreground/30 outline-none focus:ring-1 focus:ring-amber-500/50"
         />
       </div>
 
@@ -97,7 +154,7 @@ function DepartmentsPageInner() {
       <select
         value={activeDept}
         onChange={e => setActiveDept(e.target.value)}
-        className="rounded-lg border border-foreground/15 bg-white px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/50 min-w-[220px]"
+        className="rounded-lg border border-foreground/15 bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/50 min-w-[220px]"
       >
         <option value="ALL">All Departments · {employees.length}</option>
         {departments.map(d => {
@@ -105,6 +162,25 @@ function DepartmentsPageInner() {
           return <option key={d.id} value={d.id}>{d.name} · {count}</option>
         })}
       </select>
+
+      {/* Metrics strip */}
+      {!loading && (() => {
+        const scopeIds = activeDept === 'ALL'
+          ? employees.map(e => e.id)
+          : employees.filter(e => e.departmentId === activeDept).map(e => e.id)
+        const m = deptMetrics(scopeIds, recByEmp, rosteredIds)
+        return (
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-xs text-foreground/40 font-medium">Today's metrics</span>
+            <MetricPill label="Punctuality" value={m.punctuality}   color="bg-green-500/10 text-green-600" />
+            <MetricPill label="Overtime"    value={m.overtimeRate}  color="bg-violet-500/10 text-violet-600" />
+            <MetricPill label="Shift Adherence" value={m.shiftAdherence} color="bg-amber-500/10 text-amber-600" />
+            {m.punctuality === null && m.overtimeRate === null && m.shiftAdherence === null && (
+              <span className="text-xs text-foreground/30">No attendance data for today</span>
+            )}
+          </div>
+        )
+      })()}
 
       {/* Content */}
       {loading ? (
@@ -114,11 +190,12 @@ function DepartmentsPageInner() {
         <div className="space-y-3">
           {grouped.map(({ dept, members }) => {
             const isOpen = expandedDepts.has(dept.id)
+            const m = deptMetrics(members.map(e => e.id), recByEmp, rosteredIds)
             return (
-              <div key={dept.id} className="rounded-xl border border-foreground/10 bg-white/60 overflow-hidden">
+              <div key={dept.id} className="rounded-xl border border-foreground/10 bg-card overflow-hidden">
                 <button
                   onClick={() => toggleExpand(dept.id)}
-                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-white transition-colors"
+                  className="w-full flex items-center justify-between px-5 py-4 hover:bg-card/80 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
@@ -129,7 +206,12 @@ function DepartmentsPageInner() {
                       <p className="text-xs text-foreground/50">{members.length} staff</p>
                     </div>
                   </div>
-                  <ChevronDown className={`h-4 w-4 text-foreground/40 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <div className="flex items-center gap-2">
+                    <MetricPill label="Punctuality"     value={m.punctuality}    color="bg-green-500/10 text-green-600" />
+                    <MetricPill label="Overtime"        value={m.overtimeRate}   color="bg-violet-500/10 text-violet-600" />
+                    <MetricPill label="Shift Adherence" value={m.shiftAdherence} color="bg-amber-500/10 text-amber-600" />
+                    <ChevronDown className={`h-4 w-4 text-foreground/40 transition-transform ml-1 ${isOpen ? 'rotate-180' : ''}`} />
+                  </div>
                 </button>
                 {isOpen && (
                   <div className="border-t border-foreground/8">
@@ -145,7 +227,7 @@ function DepartmentsPageInner() {
         </div>
       ) : (
         /* Single department flat view */
-        <div className="rounded-xl border border-foreground/10 bg-white/60 overflow-hidden">
+        <div className="rounded-xl border border-foreground/10 bg-card overflow-hidden">
           <div className="px-5 py-4 border-b border-foreground/8 flex items-center gap-3">
             <div className="h-8 w-8 rounded-lg bg-amber-500/10 flex items-center justify-center">
               <Users className="h-4 w-4 text-amber-400" />
@@ -186,7 +268,7 @@ function EmployeeTable({ employees }: { employees: Employee[] }) {
       </thead>
       <tbody>
         {employees.map((e, i) => (
-          <tr key={e.id} className={`border-b border-foreground/6 hover:bg-white ${i % 2 === 0 ? '' : 'bg-foreground/[0.02]'}`}>
+          <tr key={e.id} className={`border-b border-foreground/6 hover:bg-foreground/5 ${i % 2 === 0 ? '' : 'bg-foreground/[0.02]'}`}>
             <td className="px-5 py-3">
               <div className="flex items-center gap-2.5">
                 <div className="h-7 w-7 rounded-full bg-amber-500/10 flex items-center justify-center text-[10px] font-bold text-amber-400 shrink-0">
