@@ -1,19 +1,30 @@
 'use client'
 
-import { useState } from 'react'
-import { Sun, Moon, Monitor, LayoutGrid, Layout, Shield, Bell } from 'lucide-react'
+import { Sun, Moon, Monitor, LayoutGrid, Bell, Shield } from 'lucide-react'
 import { useAuth, ROLE_LABELS } from '@/lib/auth'
+import { useSettings } from '@/lib/settings'
+
+function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      onClick={() => onChange(!value)}
+      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${value ? 'bg-amber-500' : 'bg-foreground/20'}`}
+    >
+      <span
+        className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${value ? 'translate-x-6' : 'translate-x-1'}`}
+      />
+    </button>
+  )
+}
 
 export default function SettingsPage() {
   const { user, role } = useAuth()
-  const [theme, setTheme] = useState<'dark' | 'light' | 'system'>('dark')
-  const [compactMode, setCompactMode] = useState(false)
-  const [notifications, setNotifications] = useState(true)
+  const { theme, compactMode, overtimeNotifications, setTheme, setCompactMode, setOvertimeNotifications } = useSettings()
 
   const themes = [
-    { value: 'light' as const, label: 'Light', icon: Sun },
-    { value: 'dark'  as const, label: 'Dark',  icon: Moon },
-    { value: 'system'as const, label: 'System',icon: Monitor },
+    { value: 'light'  as const, label: 'Light',  icon: Sun     },
+    { value: 'dark'   as const, label: 'Dark',   icon: Moon    },
+    { value: 'system' as const, label: 'System', icon: Monitor },
   ]
 
   return (
@@ -45,12 +56,15 @@ export default function SettingsPage() {
         <h2 className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Appearance</h2>
         <div className="grid grid-cols-3 gap-3">
           {themes.map((t) => (
-            <button key={t.value} onClick={() => setTheme(t.value)}
+            <button
+              key={t.value}
+              onClick={() => setTheme(t.value)}
               className={`flex flex-col items-center gap-2 rounded-xl border-2 p-4 transition-all ${
                 theme === t.value
                   ? 'border-amber-500 bg-amber-500/10'
                   : 'border-foreground/10 hover:border-foreground/20'
-              }`}>
+              }`}
+            >
               <t.icon className={`h-5 w-5 ${theme === t.value ? 'text-amber-400' : 'text-foreground/50'}`} />
               <span className={`text-sm font-medium ${theme === t.value ? 'text-foreground' : 'text-foreground/50'}`}>{t.label}</span>
             </button>
@@ -59,13 +73,13 @@ export default function SettingsPage() {
       </div>
 
       {/* Layout */}
-      <div className="rounded-xl border border-foreground/10 bg-card p-5 space-y-4">
-        <h2 className="text-sm font-semibold text-foreground/50 uppercase tracking-wider">Layout</h2>
+      <div className="rounded-xl border border-foreground/10 bg-card p-5 space-y-1">
+        <h2 className="text-sm font-semibold text-foreground/50 uppercase tracking-wider mb-3">Layout</h2>
         {[
-          { id: 'compact', icon: LayoutGrid, label: 'Compact mode', sub: 'Reduce spacing and padding', value: compactMode, set: setCompactMode },
-          { id: 'notifs',  icon: Bell,       label: 'Overtime notifications', sub: 'Show bell alerts for overtime', value: notifications, set: setNotifications },
-        ].map(item => (
-          <div key={item.id} className="flex items-center justify-between py-1 border-t border-foreground/6 first:border-0">
+          { icon: LayoutGrid, label: 'Compact mode',          sub: 'Reduce spacing and padding',   value: compactMode,            set: setCompactMode },
+          { icon: Bell,       label: 'Overtime notifications', sub: 'Show bell alerts for overtime', value: overtimeNotifications,  set: setOvertimeNotifications },
+        ].map((item, i) => (
+          <div key={i} className="flex items-center justify-between py-3 border-t border-foreground/6 first:border-0">
             <div className="flex items-center gap-3">
               <item.icon className="h-4 w-4 text-foreground/40" />
               <div>
@@ -73,10 +87,7 @@ export default function SettingsPage() {
                 <p className="text-xs text-foreground/40">{item.sub}</p>
               </div>
             </div>
-            <button onClick={() => item.set(!item.value)}
-              className={`relative h-6 w-11 rounded-full transition-colors ${item.value ? 'bg-amber-500' : 'bg-foreground/10'}`}>
-              <span className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${item.value ? 'translate-x-5' : 'translate-x-0.5'}`} />
-            </button>
+            <Toggle value={item.value} onChange={item.set} />
           </div>
         ))}
       </div>

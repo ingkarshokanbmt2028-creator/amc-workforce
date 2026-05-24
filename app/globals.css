@@ -88,6 +88,44 @@
   --sidebar-ring:                 hsl(44 90% 52%);
 }
 
+/* ── AMC Light Theme ── */
+.light {
+  --background:           hsl(210 20% 97%);
+  --foreground:           hsl(215 28% 12%);
+  --card:                 hsl(0 0% 100%);
+  --card-foreground:      hsl(215 28% 12%);
+  --popover:              hsl(0 0% 100%);
+  --popover-foreground:   hsl(215 28% 12%);
+  --primary:              hsl(44 90% 45%);
+  --primary-foreground:   hsl(0 0% 100%);
+  --secondary:            hsl(210 16% 93%);
+  --secondary-foreground: hsl(215 28% 12%);
+  --muted:                hsl(210 16% 93%);
+  --muted-foreground:     hsl(215 14% 45%);
+  --accent:               hsl(44 90% 45%);
+  --accent-foreground:    hsl(0 0% 100%);
+  --destructive:          hsl(1 70% 50%);
+  --border:               hsl(215 16% 84%);
+  --input:                hsl(215 16% 84%);
+  --ring:                 hsl(44 90% 45%);
+  --sidebar:                      hsl(215 28% 18%);
+  --sidebar-foreground:           hsl(220 18% 84%);
+  --sidebar-primary:              hsl(44 90% 52%);
+  --sidebar-primary-foreground:   hsl(215 28% 10%);
+  --sidebar-accent:               hsl(215 25% 25%);
+  --sidebar-accent-foreground:    hsl(220 18% 90%);
+  --sidebar-border:               hsl(215 20% 28%);
+  --sidebar-ring:                 hsl(44 90% 52%);
+}
+
+/* ── Compact mode ── */
+html.compact .p-6  { padding: 0.875rem !important; }
+html.compact .py-6 { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; }
+html.compact .px-6 { padding-left: 0.875rem !important; padding-right: 0.875rem !important; }
+html.compact .p-5  { padding: 0.625rem !important; }
+html.compact .space-y-6 > * + * { margin-top: 0.75rem !important; }
+html.compact .space-y-5 > * + * { margin-top: 0.5rem !important; }
+
 /* ── AMC Dark Theme ── */
 .dark {
   --background:           hsl(215 28% 10%);

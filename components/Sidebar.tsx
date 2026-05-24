@@ -7,27 +7,30 @@ import { useAuth, ROLE_LABELS } from '@/lib/auth'
 import {
   LogOut, Home, CalendarDays, Clock, CheckSquare,
   BarChart3, Download, BookOpen, Settings,
-  PanelLeftClose, PanelLeftOpen, ChevronDown,
+  PanelLeftClose, PanelLeftOpen, TrendingUp, Users, AlertTriangle,
 } from 'lucide-react'
 import { useState } from 'react'
 
-// ── Nav structure matching Osiyo's grouping ──────────────────────────────────
+// ── Nav structure ─────────────────────────────────────────────────────────────
 
 const NAV_DAILY = [
-  { href: '/',                    label: 'Home',           Icon: Home,        exact: true  },
-  { href: '/attendance',          label: 'Attendance',     Icon: Clock,       exact: false },
-  { href: '/roster',              label: 'Duty Roster',    Icon: CalendarDays, exact: false },
+  { href: '/',           label: 'Home',        Icon: Home,        exact: true  },
+  { href: '/attendance', label: 'Attendance',  Icon: Clock,       exact: false },
+  { href: '/roster',     label: 'Duty Roster', Icon: CalendarDays, exact: false },
 ]
 
 const NAV_METRICS = [
   { href: '/attendance/compliance', label: 'Shift Adherence', Icon: CheckSquare },
+  { href: '/departments',           label: 'Absenteeism',     Icon: AlertTriangle },
+  { href: '/departments',           label: 'Punctuality',     Icon: TrendingUp },
+  { href: '/departments',           label: 'Departments',     Icon: Users },
 ]
 
 const NAV_TOOLS = [
-  { href: '/report',     label: 'CEO Report',   Icon: Download   },
-  { href: '/quick-ask',  label: 'Quick AI Ask', Icon: BarChart3  },
-  { href: '/resources',  label: 'Compliance',   Icon: BookOpen   },
-  { href: '/settings',   label: 'Settings',     Icon: Settings   },
+  { href: '/report',    label: 'CEO Report',   Icon: Download  },
+  { href: '/quick-ask', label: 'Quick AI Ask', Icon: BarChart3 },
+  { href: '/resources', label: 'Compliance',   Icon: BookOpen  },
+  { href: '/settings',  label: 'Settings',     Icon: Settings  },
 ]
 
 // ── Nav item ─────────────────────────────────────────────────────────────────
@@ -72,8 +75,7 @@ export function Sidebar() {
   const router = useRouter()
   const { user, role, signOut } = useAuth()
 
-  const [collapsed, setCollapsed]       = useState(false)
-  const [metricsOpen, setMetricsOpen]   = useState(path.startsWith('/attendance/compliance'))
+  const [collapsed, setCollapsed] = useState(false)
 
   if (path === '/login') return null
 
@@ -85,16 +87,6 @@ export function Sidebar() {
   const initials = user?.email
     ? user.email.split('@')[0].slice(0, 2).toUpperCase()
     : 'AM'
-
-  const onMetricsClick = () => {
-    if (collapsed) {
-      router.push('/attendance/compliance')
-    } else {
-      setMetricsOpen(o => !o)
-    }
-  }
-
-  const metricsActive = path.startsWith('/attendance/compliance')
 
   return (
     <aside
@@ -156,41 +148,9 @@ export function Sidebar() {
 
         {/* Metrics */}
         {!collapsed && <SectionLabel>Metrics</SectionLabel>}
-        <button
-          onClick={onMetricsClick}
-          title={collapsed ? 'Metrics' : undefined}
-          className={`relative w-full flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-colors
-            ${metricsActive
-              ? 'bg-[hsl(215_27%_26%)] text-[hsl(220_22%_92%)] font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-r before:bg-[#DCAA05]'
-              : 'text-[hsl(220_18%_86%/0.65)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)]'
-            }`}
-        >
-          <BarChart3 className="h-4 w-4 shrink-0" />
-          {!collapsed && (
-            <>
-              <span className="flex-1 text-left">Metrics</span>
-              <ChevronDown className={`h-3.5 w-3.5 text-[hsl(220_18%_86%/0.45)] transition-transform ${metricsOpen ? 'rotate-180' : ''}`} />
-            </>
-          )}
-        </button>
-
-        {metricsOpen && !collapsed && (
-          <div className="ml-3 pl-3 border-l border-[hsl(215_22%_28%/0.6)] mt-0.5 mb-1 space-y-0.5">
-            {NAV_METRICS.map(m => (
-              <Link
-                key={m.href}
-                href={m.href}
-                className={`block rounded-md px-2.5 py-1.5 text-[12px] transition-colors
-                  ${path === m.href
-                    ? 'text-[hsl(220_18%_86%)] bg-[hsl(215_27%_26%/0.6)] font-medium'
-                    : 'text-[hsl(220_18%_86%/0.6)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.4)]'
-                  }`}
-              >
-                {m.label}
-              </Link>
-            ))}
-          </div>
-        )}
+        {NAV_METRICS.map(n => (
+          <NavItem key={n.label} href={n.href} label={n.label} Icon={n.Icon} path={path} collapsed={collapsed} />
+        ))}
 
         {/* Tools */}
         {!collapsed && <SectionLabel>Tools</SectionLabel>}
