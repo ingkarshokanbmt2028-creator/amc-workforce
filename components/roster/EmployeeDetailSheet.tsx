@@ -110,13 +110,24 @@ export function EmployeeDetailSheet({ employee, month, year, onClose, onAttendan
   const attRate       = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0
   const hoursPercent  = Math.min(100, (totalHours / MONTHLY_TARGET) * 100)
 
-  // Overtime days
   const slotByDate = new Map(slots.map(s => [s.date, s]))
-  const overtimeDays = attendance.filter(a => {
-    const slot = slotByDate.get(a.date)
+
+  // ── Per-employee metrics ──────────────────────────────────────────────────
+  const clockedInDays   = attendance.filter(a => a.clockIn)
+  const onTimeDays      = clockedInDays.filter(a => a.status !== 'LATE')
+  const punctualityRate = clockedInDays.length > 0
+    ? Math.round((onTimeDays.length / clockedInDays.length) * 100) : null
+
+  const overtimeHours = attendance.reduce((sum, a) => {
+    const slot    = slotByDate.get(a.date)
     const planned = slot ? slot.plannedHours : 8
-    return (a.totalHours ?? 0) > planned
-  }).length
+    const extra   = (a.totalHours ?? 0) - planned
+    return sum + (extra > 0 ? extra : 0)
+  }, 0)
+
+  const workedOrAbsent  = attendance.filter(a => a.status !== 'ON_LEAVE')
+  const absenteeismRate = workedOrAbsent.length > 0
+    ? Math.round((absentDays / workedOrAbsent.length) * 100) : null
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -154,6 +165,53 @@ export function EmployeeDetailSheet({ employee, month, year, onClose, onAttendan
             <div className="py-16 text-center text-white/30 text-sm">Loading…</div>
           ) : (
             <div className="space-y-6 pt-5">
+
+              {/* ── Per-employee metrics ── */}
+              <section>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-3">Metrics · {new Date(year, month - 1, 1).toLocaleString('en-GB', { month: 'long', year: 'numeric' })}</p>
+                <div className="grid grid-cols-3 gap-2">
+
+                  {/* Punctuality rate */}
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 flex flex-col gap-1">
+                    <p className="text-[9px] uppercase tracking-widest text-white/30 font-semibold">Punctuality</p>
+                    {punctualityRate !== null ? (
+                      <>
+                        <p className={`text-2xl font-black leading-none ${punctualityRate >= 90 ? 'text-green-400' : punctualityRate >= 75 ? 'text-amber-400' : 'text-red-400'}`}>
+                          {punctualityRate}<span className="text-sm font-bold opacity-60">%</span>
+                        </p>
+                        <p className="text-[9px] text-white/30">{onTimeDays.length}/{clockedInDays.length} on time</p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-white/20 font-bold">—</p>
+                    )}
+                  </div>
+
+                  {/* Overtime hours */}
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 flex flex-col gap-1">
+                    <p className="text-[9px] uppercase tracking-widest text-white/30 font-semibold">Overtime</p>
+                    <p className={`text-2xl font-black leading-none ${overtimeHours > 0 ? 'text-amber-400' : 'text-white/40'}`}>
+                      {overtimeHours.toFixed(1)}<span className="text-sm font-bold opacity-60">h</span>
+                    </p>
+                    <p className="text-[9px] text-white/30">extra hours this month</p>
+                  </div>
+
+                  {/* Absenteeism */}
+                  <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-3 flex flex-col gap-1">
+                    <p className="text-[9px] uppercase tracking-widest text-white/30 font-semibold">Absenteeism</p>
+                    {absenteeismRate !== null ? (
+                      <>
+                        <p className={`text-2xl font-black leading-none ${absenteeismRate === 0 ? 'text-green-400' : absenteeismRate <= 10 ? 'text-amber-400' : 'text-red-400'}`}>
+                          {absenteeismRate}<span className="text-sm font-bold opacity-60">%</span>
+                        </p>
+                        <p className="text-[9px] text-white/30">{absentDays} absent day{absentDays !== 1 ? 's' : ''}</p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-white/20 font-bold">—</p>
+                    )}
+                  </div>
+
+                </div>
+              </section>
 
               {/* Attendance summary */}
               <section>
