@@ -294,7 +294,7 @@ export default function MetricPage({ metricKey, label, description, explanation,
                 axisLine={false} tickLine={false} width={36}
               />
               <Tooltip
-                formatter={(v: number) => [`${v}%`]}
+                formatter={(v) => [`${v}%`]}
                 contentStyle={{ background: 'white', border: '1px solid hsl(215 15% 86%)', borderRadius: 8, fontSize: 12 }}
               />
               <ReferenceLine y={target} stroke="hsl(215 15% 70%)" strokeDasharray="4 3" />
