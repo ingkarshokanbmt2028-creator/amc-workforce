@@ -7,7 +7,7 @@ import { useAuth, ROLE_LABELS } from '@/lib/auth'
 import {
   LogOut, Home, CalendarDays, Clock,
   BarChart3, Download, BookOpen, Settings,
-  PanelLeftClose, PanelLeftOpen, ChevronDown, FileText,
+  PanelLeftClose, PanelLeftOpen, FileText,
 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -25,10 +25,10 @@ const NAV_METRICS = [
 ]
 
 const NAV_TOOLS = [
-  { href: '/report',    label: 'Reports',      Icon: Download  },
-  { href: '/report',    label: 'CEO Report',   Icon: FileText  },
-  { href: '/resources', label: 'Resources',    Icon: BookOpen  },
-  { href: '/settings',  label: 'Settings',     Icon: Settings  },
+  { href: '/report/exports', label: 'Reports',    Icon: Download,  exact: true },
+  { href: '/report',         label: 'CEO Report', Icon: FileText,  exact: true },
+  { href: '/resources',      label: 'Resources',  Icon: BookOpen,  exact: false },
+  { href: '/settings',       label: 'Settings',   Icon: Settings,  exact: false },
 ]
 
 function NavItem({
@@ -69,9 +69,6 @@ export function Sidebar() {
   const { user, role, signOut } = useAuth()
 
   const [collapsed, setCollapsed] = useState(false)
-  const [metricsOpen, setMetricsOpen] = useState(
-    NAV_METRICS.some(m => path === m.href || path.startsWith(m.href + '/'))
-  )
 
   if (path === '/login') return null
 
@@ -79,8 +76,6 @@ export function Sidebar() {
     await signOut()
     router.push('/login')
   }
-
-  const metricsActive = NAV_METRICS.some(m => path === m.href)
 
   return (
     <aside
@@ -122,42 +117,21 @@ export function Sidebar() {
         ))}
 
         <SectionLabel collapsed={collapsed}>Metrics</SectionLabel>
-        {/* Metrics toggle button */}
-        <button
-          onClick={() => collapsed ? router.push('/metrics/punctuality') : setMetricsOpen(o => !o)}
-          title={collapsed ? 'Metrics' : undefined}
-          className={`relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] transition-colors
-            ${metricsActive
-              ? 'bg-white/10 text-white font-medium'
-              : 'text-white/55 hover:text-white/85 hover:bg-white/[0.06]'
-            }`}
-        >
-          <BarChart3 className="h-4 w-4 shrink-0" />
-          {!collapsed && (
-            <>
-              <span className="flex-1 text-left">Metrics</span>
-              <ChevronDown className={`h-3.5 w-3.5 text-white/30 transition-transform ${metricsOpen ? 'rotate-180' : ''}`} />
-            </>
-          )}
-        </button>
-
-        {metricsOpen && !collapsed && (
-          <div className="ml-3 pl-3 border-l border-white/10 space-y-0.5 mt-0.5">
-            {NAV_METRICS.map(m => (
-              <Link
-                key={m.href}
-                href={m.href}
-                className={`block rounded-md px-2 py-1.5 text-[12px] transition-colors
-                  ${path === m.href
-                    ? 'text-white font-medium bg-white/[0.08]'
-                    : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]'
-                  }`}
-              >
-                {m.label}
-              </Link>
-            ))}
-          </div>
-        )}
+        {NAV_METRICS.map(m => (
+          <Link
+            key={m.href}
+            href={m.href}
+            title={collapsed ? m.label : undefined}
+            className={`relative flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] transition-colors
+              ${path === m.href
+                ? 'bg-white/10 text-white font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-r before:bg-[#DCAA05]'
+                : 'text-white/55 hover:text-white/85 hover:bg-white/[0.06]'
+              }`}
+          >
+            <BarChart3 className="h-4 w-4 shrink-0" />
+            {!collapsed && <span>{m.label}</span>}
+          </Link>
+        ))}
 
         <SectionLabel collapsed={collapsed}>Tools</SectionLabel>
         {NAV_TOOLS.map(n => (
