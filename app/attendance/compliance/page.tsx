@@ -11,7 +11,7 @@ const STATUS_META: Record<ComplianceStatus, { label: string; short: string; bg: 
   COMPLIANT:      { label: 'Compliant',       short: '✓',  bg: 'bg-green-500/10',  text: 'text-green-600',  border: 'border-green-500/20' },
   LATE:           { label: 'Late',             short: 'L',  bg: 'bg-amber-500/10',  text: 'text-amber-600',  border: 'border-amber-500/20' },
   NO_SHOW:        { label: 'No Show',          short: '✗',  bg: 'bg-red-500/10',    text: 'text-red-600',    border: 'border-red-500/20'   },
-  OFF_DAY:        { label: 'Off Day',          short: 'O',  bg: 'bg-foreground/5',       text: 'text-foreground/40',   border: 'border-white/5'      },
+  OFF_DAY:        { label: 'Off Day',          short: 'O',  bg: 'bg-foreground/5',       text: 'text-foreground/40',   border: 'border-foreground/10' },
   ON_LEAVE:       { label: 'On Leave',         short: 'AL', bg: 'bg-blue-500/10',   text: 'text-blue-600',   border: 'border-blue-500/20'  },
   LEAVE_CONFLICT: { label: 'Leave Conflict',   short: '!',  bg: 'bg-orange-500/10', text: 'text-orange-600', border: 'border-orange-500/20'},
   UNSCHEDULED:    { label: 'Unscheduled',      short: 'U',  bg: 'bg-purple-500/10', text: 'text-purple-600', border: 'border-purple-500/20'},
@@ -100,7 +100,7 @@ function RateBar({ rate }: { rate: number }) {
   const color = rate >= 90 ? '#22c55e' : rate >= 75 ? '#f59e0b' : '#ef4444'
   return (
     <div className="flex items-center gap-2 min-w-[120px]">
-      <div className="flex-1 h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
+      <div className="flex-1 h-1.5 bg-foreground/10 rounded-full overflow-hidden">
         <div className="h-full rounded-full transition-all" style={{ width: `${rate}%`, backgroundColor: color }} />
       </div>
       <span className="text-xs font-bold w-9 text-right" style={{ color }}>{rate}%</span>
@@ -117,7 +117,7 @@ function DayBreakdown({ summary }: { summary: EmployeeSummary }) {
     <div className="mt-3 rounded-xl border border-foreground/10 overflow-hidden">
       <table className="w-full text-xs">
         <thead>
-          <tr className="bg-white/60 border-b border-foreground/10">
+          <tr className="bg-foreground/[0.03] border-b border-foreground/10">
             <th className="px-4 py-2 text-left font-semibold text-foreground/50">Date</th>
             <th className="px-3 py-2 text-left font-semibold text-foreground/50">Rostered</th>
             <th className="px-3 py-2 text-left font-semibold text-foreground/50">Scheduled</th>
@@ -188,7 +188,7 @@ function EmployeeCard({ summary, expanded, onToggle }: {
 
   return (
     <div className={`rounded-xl border transition-all ${
-      expanded ? 'border-foreground/15 bg-white/60' : 'border-foreground/10 hover:border-foreground/12 hover:bg-white'
+      expanded ? 'border-foreground/15 bg-card' : 'border-foreground/10 hover:border-foreground/15 hover:bg-card'
     }`}>
       <button
         onClick={onToggle}
@@ -365,7 +365,7 @@ export default function CompliancePage() {
           <button
             onClick={fetchCompliance}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-foreground/15 text-sm font-medium text-foreground/60 hover:text-foreground hover:bg-white disabled:opacity-40 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg border border-foreground/15 text-sm font-medium text-foreground/60 hover:text-foreground hover:bg-foreground/5 disabled:opacity-40 transition-colors"
           >
             <svg className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
@@ -385,7 +385,7 @@ export default function CompliancePage() {
               className={`px-3 py-2 text-sm font-medium transition-colors ${
                 m === month
                   ? 'bg-foreground text-background'
-                  : 'text-foreground/50 hover:text-foreground/70 hover:bg-white'
+                  : 'text-foreground/50 hover:text-foreground/70 hover:bg-foreground/5'
               }`}
             >
               {MONTHS[m-1].slice(0, 3)}
@@ -395,7 +395,7 @@ export default function CompliancePage() {
         <select
           value={year}
           onChange={e => setYear(Number(e.target.value))}
-          className="px-3 py-2 rounded-lg border border-foreground/15 bg-white/60 text-sm text-foreground focus:outline-none"
+          className="px-3 py-2 rounded-lg border border-foreground/15 bg-card text-sm text-foreground focus:outline-none"
         >
           {[2025, 2026, 2027].map(y => <option key={y} value={y}>{y}</option>)}
         </select>
@@ -428,14 +428,13 @@ export default function CompliancePage() {
       {!loading && rows.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
           {[
-            { label: 'Compliance Rate', value: `${overall.rate}%`, color: rateColor, bg: 'bg-white/60', border: 'border-foreground/10', icon: '📊' },
-            { label: 'Rostered Days',   value: overall.working,    color: 'text-foreground/70', bg: 'bg-white/60', border: 'border-foreground/10', icon: '📅' },
-            { label: 'On Time',         value: overall.compliant,  color: 'text-green-600', bg: 'bg-green-500/5',  border: 'border-green-500/10', icon: '✅' },
-            { label: 'Late',            value: overall.late,       color: 'text-amber-600', bg: 'bg-amber-500/5',  border: 'border-amber-500/10', icon: '⏱' },
-            { label: 'No Shows',        value: overall.noShow,     color: 'text-red-600',   bg: 'bg-red-500/5',    border: 'border-red-500/10',   icon: '❌' },
+            { label: 'Compliance Rate', value: `${overall.rate}%`, color: rateColor,            bg: 'bg-card', border: 'border-foreground/10' },
+            { label: 'Rostered Days',   value: overall.working,    color: 'text-foreground',   bg: 'bg-card', border: 'border-foreground/10' },
+            { label: 'On Time',         value: overall.compliant,  color: 'text-green-600',    bg: 'bg-card', border: 'border-foreground/10' },
+            { label: 'Late',            value: overall.late,       color: 'text-amber-600',    bg: 'bg-card', border: 'border-foreground/10' },
+            { label: 'No Shows',        value: overall.noShow,     color: 'text-red-600',      bg: 'bg-card', border: 'border-foreground/10' },
           ].map(s => (
             <div key={s.label} className={`rounded-xl border ${s.border} ${s.bg} p-4`}>
-              <div className="text-xl mb-1">{s.icon}</div>
               <div className={`text-2xl font-bold tracking-tight ${s.color}`}>{s.value}</div>
               <div className="text-xs text-foreground/40 mt-0.5">{s.label}</div>
             </div>
@@ -464,7 +463,7 @@ export default function CompliancePage() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search by name or staff ID…"
-            className="w-full pl-9 pr-4 py-2 rounded-lg border border-foreground/15 bg-white/60 text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-1 focus:ring-white/20"
+            className="w-full pl-9 pr-4 py-2 rounded-lg border border-foreground/15 bg-card text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-1 focus:ring-white/20"
           />
         </div>
         <div className="flex items-center gap-1">

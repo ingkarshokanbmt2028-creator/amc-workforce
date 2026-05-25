@@ -435,7 +435,7 @@ export default function RosterPage() {
                   <table className="w-full text-xs border-collapse">
                     <thead>
                       <tr className="bg-muted/20">
-                        <th className="sticky left-0 bg-[#0f1117] px-4 py-2 text-left font-semibold min-w-[220px] border-r border-border">NAME</th>
+                        <th className="sticky left-0 bg-card px-4 py-2 text-left font-semibold min-w-[220px] border-r border-border text-foreground">NAME</th>
                         {weekDays.map(d => {
                           const isToday = d.toDateString() === new Date().toDateString()
                           const dow = DOW_LABELS[(d.getDay() + 6) % 7]
@@ -451,17 +451,17 @@ export default function RosterPage() {
                     <tbody>
                       {/* Separator before LOCUM section */}
                       {filteredEmps.some(e => e.employeeType === 'LOCUM') && (
-                        <tr className="border-t border-white/[0.05]">
+                        <tr className="border-t border-foreground/[0.06]">
                           <td colSpan={weekDays.length + 1} className="px-4 py-1.5 bg-blue-500/5">
                             <span className="text-[10px] font-bold tracking-widest text-blue-400/60 uppercase">Locum Staff</span>
                           </td>
                         </tr>
                       )}
                       {filteredEmps.map((emp, idx) => (
-                        <tr key={emp.id} className={`border-t border-white/[0.05] hover:bg-white/[0.03] ${emp.employeeType === 'LOCUM' ? 'bg-blue-500/[0.04]' : idx % 2 === 0 ? '' : 'bg-white/[0.02]'}`}>
-                          <td className="sticky left-0 bg-[#0f1117] px-4 py-1.5 border-r border-border min-w-[220px] max-w-[220px] group/row">
+                        <tr key={emp.id} className={`border-t border-foreground/[0.06] hover:bg-foreground/[0.02] ${emp.employeeType === 'LOCUM' ? 'bg-blue-500/[0.04]' : ''}`}>
+                          <td className="sticky left-0 bg-card px-4 py-1.5 border-r border-border min-w-[220px] max-w-[220px] group/row">
                             <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-bold text-white/70 flex-shrink-0">
+                              <div className="w-7 h-7 rounded-full bg-foreground/10 flex items-center justify-center text-[10px] font-bold text-foreground/70 flex-shrink-0">
                                 {emp.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('')}
                               </div>
                               <button
@@ -469,17 +469,17 @@ export default function RosterPage() {
                                 onClick={() => setDetailEmployee({ ...emp, department: deptById.get(emp.departmentId) })}
                               >
                                 <div className="flex items-center gap-1.5">
-                                  <p className="text-xs font-semibold text-white truncate">{emp.name}</p>
+                                  <p className="text-xs font-semibold text-foreground truncate">{emp.name}</p>
                                   {emp.employeeType === 'LOCUM' && (
                                     <span className="flex-shrink-0 px-1 py-0.5 rounded text-[8px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">LOCUM</span>
                                   )}
                                 </div>
-                                <p className="text-[10px] text-white/40 truncate">{emp.staffId}</p>
+                                <p className="text-[10px] text-foreground/40 truncate">{emp.staffId}</p>
                               </button>
                               {/* Remove button — shows on row hover */}
                               <button
                                 onClick={() => setRemoveConfirm({ id: emp.id, name: emp.name })}
-                                className="opacity-0 group-hover/row:opacity-100 p-1 rounded hover:bg-red-500/20 text-white/30 hover:text-red-400 transition-all flex-shrink-0"
+                                className="opacity-0 group-hover/row:opacity-100 p-1 rounded hover:bg-red-500/20 text-foreground/30 hover:text-red-500 transition-all flex-shrink-0"
                                 title="Remove employee"
                               >
                                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -507,7 +507,7 @@ export default function RosterPage() {
                                     deptById.get(emp.departmentId)?.code
                                   )}
                                   className={`w-full min-h-[44px] rounded-lg text-xs font-bold transition-all hover:opacity-80 hover:scale-105 flex flex-col items-center justify-center px-1 ${
-                                    slot ? colorClass : 'text-white/20 hover:bg-white/5 hover:text-white/40'
+                                    slot ? colorClass : 'text-foreground/20 hover:bg-foreground/5 hover:text-foreground/50'
                                   } ${slot?.isEmergency ? 'ring-2 ring-red-500' : ''}`}
                                   title={slot ? `${slot.shiftType}${SHIFT_TIMES[slot.shiftType] ? ` · ${SHIFT_TIMES[slot.shiftType].start}–${SHIFT_TIMES[slot.shiftType].end}` : ''}` : 'Click to assign shift'}
                                 >
@@ -537,25 +537,25 @@ export default function RosterPage() {
       {/* Remove employee confirmation */}
       {removeConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-          <div className="bg-[#0f1117] border border-white/10 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+          <div className="bg-card border border-foreground/10 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </div>
               <div>
-                <p className="font-semibold text-white">Remove Employee?</p>
-                <p className="text-sm text-white/50 mt-0.5">This will deactivate their account</p>
+                <p className="font-semibold text-foreground">Remove Employee?</p>
+                <p className="text-sm text-foreground/50 mt-0.5">This will deactivate their account</p>
               </div>
             </div>
-            <p className="text-sm text-white/70 mb-5">
-              <span className="text-white font-medium">{removeConfirm.name}</span> will be set to inactive. Their roster history is kept. You can reactivate them from the database later.
+            <p className="text-sm text-foreground/70 mb-5">
+              <span className="text-foreground font-medium">{removeConfirm.name}</span> will be set to inactive. Their roster history is kept. You can reactivate them from the database later.
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setRemoveConfirm(null)}
-                className="flex-1 px-4 py-2 rounded-lg border border-white/10 text-sm text-white/60 hover:bg-white/5 transition-colors"
+                className="flex-1 px-4 py-2 rounded-lg border border-foreground/10 text-sm text-foreground/60 hover:bg-foreground/5 transition-colors"
               >
                 Cancel
               </button>
