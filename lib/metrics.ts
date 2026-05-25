@@ -1,5 +1,6 @@
 export interface AttRecord {
   employeeId: string
+  date?: string
   status: string
   clockIn?: string | null
   clockOut?: string | null

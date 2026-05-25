@@ -5,35 +5,31 @@ import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { useAuth, ROLE_LABELS } from '@/lib/auth'
 import {
-  LogOut, Home, CalendarDays, Clock, CheckSquare,
+  LogOut, Home, CalendarDays, Clock,
   BarChart3, Download, BookOpen, Settings,
-  PanelLeftClose, PanelLeftOpen, TrendingUp, AlertTriangle, Timer,
+  PanelLeftClose, PanelLeftOpen, ChevronDown, FileText,
 } from 'lucide-react'
 import { useState } from 'react'
 
-// ── Nav structure ─────────────────────────────────────────────────────────────
-
 const NAV_DAILY = [
-  { href: '/',           label: 'Home',        Icon: Home,        exact: true  },
-  { href: '/attendance', label: 'Attendance',  Icon: Clock,       exact: false },
-  { href: '/roster',     label: 'Duty Roster', Icon: CalendarDays, exact: false },
+  { href: '/',           label: 'Home',        Icon: Home,         exact: true  },
+  { href: '/attendance', label: 'Attendance',  Icon: Clock,        exact: false },
+  { href: '/roster',     label: 'Duty roster', Icon: CalendarDays, exact: false },
 ]
 
 const NAV_METRICS = [
-  { href: '/attendance/compliance',  label: 'Shift Adherence', Icon: CheckSquare  },
-  { href: '/metrics/absenteeism',    label: 'Absenteeism',     Icon: AlertTriangle },
-  { href: '/metrics/punctuality',    label: 'Punctuality',     Icon: TrendingUp   },
-  { href: '/metrics/overtime',       label: 'Overtime',        Icon: Timer        },
+  { href: '/metrics/punctuality',     label: 'Punctuality rate'  },
+  { href: '/metrics/absenteeism',     label: 'Absenteeism rate'  },
+  { href: '/metrics/shift-adherence', label: 'Shift adherence'   },
+  { href: '/metrics/overtime',        label: 'Overtime rate'     },
 ]
 
 const NAV_TOOLS = [
-  { href: '/report',    label: 'CEO Report',   Icon: Download  },
-  { href: '/quick-ask', label: 'Quick AI Ask', Icon: BarChart3 },
-  { href: '/resources', label: 'Compliance',   Icon: BookOpen  },
+  { href: '/report',    label: 'Reports',      Icon: Download  },
+  { href: '/report',    label: 'CEO Report',   Icon: FileText  },
+  { href: '/resources', label: 'Resources',    Icon: BookOpen  },
   { href: '/settings',  label: 'Settings',     Icon: Settings  },
 ]
-
-// ── Nav item ─────────────────────────────────────────────────────────────────
 
 function NavItem({
   href, label, Icon, path, collapsed, exact = false,
@@ -46,10 +42,10 @@ function NavItem({
     <Link
       href={href}
       title={collapsed ? label : undefined}
-      className={`relative flex items-center gap-2.5 px-2.5 py-2 rounded-md text-[13px] transition-colors
+      className={`relative flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] transition-colors
         ${active
-          ? 'bg-[hsl(215_27%_26%)] text-[hsl(220_22%_92%)] font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-r before:bg-[#DCAA05]'
-          : 'text-[hsl(220_18%_86%/0.65)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)]'
+          ? 'bg-white/10 text-white font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-r before:bg-[#DCAA05]'
+          : 'text-white/55 hover:text-white/85 hover:bg-white/[0.06]'
         }`}
     >
       <Icon className="h-4 w-4 shrink-0" />
@@ -58,17 +54,14 @@ function NavItem({
   )
 }
 
-// ── Section label ─────────────────────────────────────────────────────────────
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
+function SectionLabel({ children, collapsed }: { children: React.ReactNode; collapsed: boolean }) {
+  if (collapsed) return <div className="my-2 border-t border-white/10" />
   return (
-    <p className="text-[10px] tracking-[0.16em] uppercase text-[hsl(220_18%_86%/0.4)] px-3 mb-2 mt-6 font-medium font-display">
+    <p className="text-[10px] tracking-[0.14em] uppercase text-white/30 px-3 mb-1 mt-5 font-semibold">
       {children}
     </p>
   )
 }
-
-// ── Sidebar ───────────────────────────────────────────────────────────────────
 
 export function Sidebar() {
   const path   = usePathname()
@@ -76,6 +69,9 @@ export function Sidebar() {
   const { user, role, signOut } = useAuth()
 
   const [collapsed, setCollapsed] = useState(false)
+  const [metricsOpen, setMetricsOpen] = useState(
+    NAV_METRICS.some(m => path === m.href || path.startsWith(m.href + '/'))
+  )
 
   if (path === '/login') return null
 
@@ -84,47 +80,29 @@ export function Sidebar() {
     router.push('/login')
   }
 
-  const initials = user?.email
-    ? user.email.split('@')[0].slice(0, 2).toUpperCase()
-    : 'AM'
+  const metricsActive = NAV_METRICS.some(m => path === m.href)
 
   return (
     <aside
       className="flex-shrink-0 flex flex-col h-screen sticky top-0 border-r transition-all duration-200"
       style={{
-        width: collapsed ? '56px' : '220px',
-        background: 'hsl(215 30% 19%)',
-        borderColor: 'hsl(215 22% 28%)',
+        width: collapsed ? '52px' : '160px',
+        background: 'hsl(215 28% 16%)',
+        borderColor: 'hsl(215 22% 22%)',
       }}
     >
-      {/* ── Header: logo + collapse toggle ── */}
-      <div
-        className="flex items-start justify-between border-b px-3 py-5"
-        style={{ borderColor: 'hsl(215 22% 28%)' }}
-      >
+      {/* Logo */}
+      <div className="flex items-center justify-between px-3 py-4 border-b" style={{ borderColor: 'hsl(215 22% 22%)' }}>
         {collapsed ? (
-          <div className="flex flex-col items-center gap-3 w-full">
-            <Link href="/">
-              <Image src="/amc-sun.png" alt="AMC" width={36} height={36} className="object-contain" />
-            </Link>
-            <button
-              onClick={() => setCollapsed(false)}
-              aria-label="Expand sidebar"
-              className="p-1.5 rounded-md text-[hsl(220_18%_86%/0.45)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)] transition-colors"
-            >
-              <PanelLeftOpen className="h-4 w-4" />
-            </button>
-          </div>
+          <button onClick={() => setCollapsed(false)} className="mx-auto text-white/40 hover:text-white/70 transition-colors">
+            <PanelLeftOpen className="h-4 w-4" />
+          </button>
         ) : (
           <>
             <Link href="/">
-              <Image src="/amc-logo.png" alt="Accra Medical Centre" width={130} height={48} className="object-contain object-left" />
+              <Image src="/amc-logo.png" alt="AMC" width={100} height={36} className="object-contain object-left" />
             </Link>
-            <button
-              onClick={() => setCollapsed(true)}
-              aria-label="Collapse sidebar"
-              className="mt-1 p-1.5 rounded-md text-[hsl(220_18%_86%/0.45)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)] transition-colors shrink-0"
-            >
+            <button onClick={() => setCollapsed(true)} className="text-white/40 hover:text-white/70 transition-colors shrink-0">
               <PanelLeftClose className="h-4 w-4" />
             </button>
           </>
@@ -132,64 +110,79 @@ export function Sidebar() {
       </div>
 
       {!collapsed && (
-        <p className="text-[10px] tracking-[0.16em] uppercase text-[hsl(220_18%_86%/0.4)] px-4 pt-3 font-medium font-display">
-          Workforce
-        </p>
+        <p className="text-[9px] tracking-[0.14em] uppercase text-white/30 px-3 pt-3 font-semibold">Workforce</p>
       )}
 
-      {/* ── Navigation ── */}
-      <nav className="flex-1 px-2 pt-2 pb-4 overflow-y-auto space-y-0.5">
+      {/* Nav */}
+      <nav className="flex-1 px-2 pt-1 pb-4 overflow-y-auto space-y-0.5">
 
-        {/* Daily */}
-        {!collapsed && <SectionLabel>Daily</SectionLabel>}
+        <SectionLabel collapsed={collapsed}>Daily</SectionLabel>
         {NAV_DAILY.map(n => (
-          <NavItem key={n.href} {...n} path={path} collapsed={collapsed} />
+          <NavItem key={n.href + n.label} href={n.href} label={n.label} Icon={n.Icon} path={path} collapsed={collapsed} exact={n.exact} />
         ))}
 
-        {/* Metrics */}
-        {!collapsed && <SectionLabel>Metrics</SectionLabel>}
-        {NAV_METRICS.map(n => (
-          <NavItem key={n.label} href={n.href} label={n.label} Icon={n.Icon} path={path} collapsed={collapsed} />
-        ))}
+        <SectionLabel collapsed={collapsed}>Metrics</SectionLabel>
+        {/* Metrics toggle button */}
+        <button
+          onClick={() => collapsed ? router.push('/metrics/punctuality') : setMetricsOpen(o => !o)}
+          title={collapsed ? 'Metrics' : undefined}
+          className={`relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] transition-colors
+            ${metricsActive
+              ? 'bg-white/10 text-white font-medium'
+              : 'text-white/55 hover:text-white/85 hover:bg-white/[0.06]'
+            }`}
+        >
+          <BarChart3 className="h-4 w-4 shrink-0" />
+          {!collapsed && (
+            <>
+              <span className="flex-1 text-left">Metrics</span>
+              <ChevronDown className={`h-3.5 w-3.5 text-white/30 transition-transform ${metricsOpen ? 'rotate-180' : ''}`} />
+            </>
+          )}
+        </button>
 
-        {/* Tools */}
-        {!collapsed && <SectionLabel>Tools</SectionLabel>}
+        {metricsOpen && !collapsed && (
+          <div className="ml-3 pl-3 border-l border-white/10 space-y-0.5 mt-0.5">
+            {NAV_METRICS.map(m => (
+              <Link
+                key={m.href}
+                href={m.href}
+                className={`block rounded-md px-2 py-1.5 text-[12px] transition-colors
+                  ${path === m.href
+                    ? 'text-white font-medium bg-white/[0.08]'
+                    : 'text-white/50 hover:text-white/80 hover:bg-white/[0.05]'
+                  }`}
+              >
+                {m.label}
+              </Link>
+            ))}
+          </div>
+        )}
+
+        <SectionLabel collapsed={collapsed}>Tools</SectionLabel>
         {NAV_TOOLS.map(n => (
-          <NavItem key={n.href} {...n} path={path} collapsed={collapsed} />
+          <NavItem key={n.label} href={n.href} label={n.label} Icon={n.Icon} path={path} collapsed={collapsed} />
         ))}
       </nav>
 
-      {/* ── Footer ── */}
-      <div
-        className="p-3 border-t"
-        style={{ borderColor: 'hsl(215 22% 28%)' }}
-      >
+      {/* Footer */}
+      <div className="p-2 border-t" style={{ borderColor: 'hsl(215 22% 22%)' }}>
         {!collapsed ? (
           <div>
-            <div className="px-2 py-2">
-              <p className="text-[12px] font-medium text-[hsl(220_18%_86%)] truncate leading-tight">
-                {user?.email ?? '—'}
-              </p>
-              {role && (
-                <p className="text-[10px] text-[hsl(220_18%_86%/0.5)] mt-0.5 tracking-[0.08em] uppercase font-display">
-                  {ROLE_LABELS[role] ?? role}
-                </p>
-              )}
+            <div className="px-2 py-1.5">
+              <p className="text-[11px] font-medium text-white/80 truncate">{user?.email ?? '—'}</p>
+              <p className="text-[9px] text-white/40 uppercase tracking-wider mt-0.5">{role ? ROLE_LABELS[role] ?? role : 'Admin'}</p>
             </div>
             <button
               onClick={handleSignOut}
-              className="w-full flex items-center gap-2 px-2 py-2 rounded-md text-[12px] text-[hsl(220_18%_86%/0.65)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)] transition-colors"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-[12px] text-white/50 hover:text-white/80 hover:bg-white/[0.06] transition-colors"
             >
               <LogOut className="h-3.5 w-3.5" />
               Sign out
             </button>
           </div>
         ) : (
-          <button
-            onClick={handleSignOut}
-            aria-label="Sign out"
-            className="w-full flex items-center justify-center p-2 rounded-md text-[hsl(220_18%_86%/0.65)] hover:text-[hsl(220_18%_86%)] hover:bg-[hsl(215_27%_26%/0.6)] transition-colors"
-          >
+          <button onClick={handleSignOut} className="w-full flex justify-center p-2 text-white/50 hover:text-white/80 hover:bg-white/[0.06] rounded-md transition-colors">
             <LogOut className="h-4 w-4" />
           </button>
         )}

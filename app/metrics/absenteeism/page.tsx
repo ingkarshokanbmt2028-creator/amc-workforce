@@ -5,10 +5,11 @@ export default function AbsenteeismPage() {
     <MetricPage
       metricKey="absenteeism"
       label="Absenteeism rate"
-      description="Share of staff who were absent or did not clock in today"
-      explanation="Counts staff with no clock-in or an ABSENT status as absent. A high absenteeism rate may indicate scheduling, wellbeing, or management issues."
-      target={10}
+      description="Expected shifts where staff didn't show up."
+      explanation="The share of expected shifts where the person was a no-show. Doesn't include approved leave, only unaccounted absences."
+      target={5}
       higherIsBetter={false}
+      trendLabel="Daily absenteeism rate"
     />
   )
 }

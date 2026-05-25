@@ -5,10 +5,11 @@ export default function OvertimePage() {
     <MetricPage
       metricKey="overtimeRate"
       label="Overtime rate"
-      description="Share of staff working more than 9 hours in a shift"
-      explanation="Counts any employee clocked in for more than 9 hours as overtime. High overtime may indicate understaffing or scheduling gaps."
-      target={20}
+      description="Staff working beyond scheduled hours"
+      explanation="The share of staff who worked beyond their scheduled hours in the period. Some overtime is healthy; consistently high overtime usually signals a staffing gap."
+      target={15}
       higherIsBetter={false}
+      trendLabel="Daily overtime rate"
     />
   )
 }
