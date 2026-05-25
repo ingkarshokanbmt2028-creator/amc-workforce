@@ -16,13 +16,13 @@ interface Props {
   explanation: string
   target: number
   higherIsBetter: boolean
-  trendLabel: string  // e.g. "Daily punctuality rate"
+  trendLabel: string
 }
 
-function getLast7Days() {
+function getNDaysEndingAt(endDate: string, n: number): string[] {
   const days = []
-  for (let i = 6; i >= 0; i--) {
-    const d = new Date()
+  for (let i = n - 1; i >= 0; i--) {
+    const d = new Date(endDate + 'T12:00:00')
     d.setDate(d.getDate() - i)
     days.push(d.toISOString().slice(0, 10))
   }
@@ -33,75 +33,186 @@ function getDayLabel(iso: string) {
   return new Date(iso + 'T12:00:00').toLocaleDateString('en-GB', { weekday: 'short' })
 }
 
+interface EmpRow {
+  name: string
+  department: string
+  value: number | null
+  detail: string
+}
+
 export default function MetricPage({ metricKey, label, description, explanation, target, higherIsBetter, trendLabel }: Props) {
   const [period, setPeriod] = useState<Period>('week')
   const [allAtt, setAllAtt] = useState<AttRecord[]>([])
   const [empIds, setEmpIds] = useState<string[]>([])
   const [rosteredIds, setRostered] = useState<Set<string>>(new Set())
   const [loading, setLoading] = useState(true)
+  const [effectiveToday, setEffectiveToday] = useState('')
 
-  const today = new Date().toISOString().slice(0, 10)
-  const month = parseInt(today.slice(5, 7))
-  const year  = parseInt(today.slice(0, 4))
+  const systemToday = new Date().toISOString().slice(0, 10)
+  const month = parseInt(systemToday.slice(5, 7))
+  const year  = parseInt(systemToday.slice(0, 4))
 
   useEffect(() => {
+    // Fetch last 90 days so we always catch data regardless of when the last sync was
+    const from = new Date(new Date().setDate(new Date().getDate() - 90)).toISOString().slice(0, 10)
+    const to = systemToday
+
     Promise.all([
       fetch('/api/employees').then(r => r.json()),
-      fetch(`/api/attendance?month=${month}&year=${year}&limit=5000`).then(r => r.json()),
+      fetch(`/api/attendance?from=${from}&to=${to}&limit=10000`).then(r => r.json()),
       fetch(`/api/roster?month=${month}&year=${year}`).then(r => r.ok ? r.json() : []),
     ]).then(([emps, attData, rosters]) => {
       setEmpIds((emps as { id: string }[]).map(e => e.id))
-      setAllAtt(attData.attendance ?? [])
+
+      // Map API response → AttRecord (include employee name + department)
+      const rawRecords = (attData.attendance ?? []) as {
+        employeeId: string
+        date?: string
+        status: string
+        clockIn?: string | null
+        clockOut?: string | null
+        totalHours?: number | null
+        lateMinutes?: number | null
+        employee?: { name?: string; department?: { name?: string } }
+      }[]
+
+      const records: AttRecord[] = rawRecords.map(r => ({
+        employeeId:     r.employeeId,
+        employeeName:   r.employee?.name ?? '',
+        departmentName: r.employee?.department?.name ?? '',
+        date:           r.date,
+        status:         r.status,
+        clockIn:        r.clockIn,
+        clockOut:       r.clockOut,
+        totalHours:     r.totalHours ?? undefined,
+        lateMinutes:    r.lateMinutes ?? undefined,
+      }))
+
+      setAllAtt(records)
+
+      // Auto-detect the most recent date that actually has records
+      const dates = [...new Set(records.map(r => r.date?.slice(0, 10)).filter(Boolean) as string[])]
+      dates.sort()
+      setEffectiveToday(dates[dates.length - 1] ?? systemToday)
 
       const ids = new Set<string>()
-      for (const roster of (rosters as { slots: { employeeId: string; date: string }[] }[])) {
+      for (const roster of (rosters as { slots: { employeeId: string }[] }[])) {
         for (const slot of roster.slots) ids.add(slot.employeeId)
       }
       setRostered(ids)
       setLoading(false)
     })
-  }, [month, year])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-  // Compute metric for a given day's attendance records
   function metricForDay(date: string) {
     const dayRecs = allAtt.filter(r => r.date?.slice(0, 10) === date)
     const recByEmp = new Map(dayRecs.map(r => [r.employeeId, r]))
-    const m = calcMetrics(empIds, recByEmp, rosteredIds)
-    return m[metricKey]
+    return calcMetrics(empIds, recByEmp, rosteredIds)[metricKey]
   }
 
-  const last7 = useMemo(() => getLast7Days(), [])
+  const last7  = useMemo(() => effectiveToday ? getNDaysEndingAt(effectiveToday, 7)  : [], [effectiveToday])
+  const last30 = useMemo(() => effectiveToday ? getNDaysEndingAt(effectiveToday, 30) : [], [effectiveToday])
 
-  // Current value based on period
+  const activeDays = period === 'month' ? last30 : last7
+
   const currentValue = useMemo(() => {
-    if (loading) return null
-    if (period === 'today') {
-      return metricForDay(today)
-    }
-    // For week/month: average of available days
-    const days = period === 'week' ? last7 : last7 // month would need more data
-    const vals = days.map(d => metricForDay(d)).filter(v => v !== null) as number[]
+    if (loading || !effectiveToday) return null
+    if (period === 'today') return metricForDay(effectiveToday)
+    const vals = activeDays.map(d => metricForDay(d)).filter(v => v !== null) as number[]
     if (vals.length === 0) return null
     return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length)
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, period, allAtt, empIds, rosteredIds, today, last7])
+  }, [loading, period, allAtt, empIds, rosteredIds, effectiveToday, activeDays])
 
-  // Trend data for chart (last 7 days)
   const trendData = useMemo(() => {
-    if (loading) return []
-    return last7.map(date => ({
+    if (loading || !effectiveToday) return []
+    return activeDays.map(date => ({
       day: getDayLabel(date),
       value: metricForDay(date) ?? 0,
       target,
     }))
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, allAtt, empIds, rosteredIds, last7, target])
+  }, [loading, allAtt, empIds, rosteredIds, effectiveToday, activeDays, target])
+
+  // Per-employee breakdown for the active period
+  const employeeRows = useMemo((): EmpRow[] => {
+    if (loading || !effectiveToday) return []
+    const days = period === 'today' ? [effectiveToday] : activeDays
+
+    // Group records by employee for the active days
+    const empMap = new Map<string, { name: string; dept: string; recs: AttRecord[] }>()
+    for (const rec of allAtt) {
+      if (!days.includes(rec.date?.slice(0, 10) ?? '')) continue
+      if (!empMap.has(rec.employeeId)) {
+        empMap.set(rec.employeeId, {
+          name: rec.employeeName ?? rec.employeeId,
+          dept: rec.departmentName ?? '',
+          recs: [],
+        })
+      }
+      empMap.get(rec.employeeId)!.recs.push(rec)
+    }
+
+    const rows: EmpRow[] = []
+    for (const [, emp] of empMap) {
+      const clockedIn = emp.recs.filter(r => r.clockIn)
+
+      if (metricKey === 'punctuality') {
+        if (clockedIn.length === 0) continue
+        const onTime = clockedIn.filter(r => r.status !== 'LATE').length
+        rows.push({
+          name: emp.name, department: emp.dept,
+          value: Math.round((onTime / clockedIn.length) * 100),
+          detail: `${onTime}/${clockedIn.length} on time`,
+        })
+      } else if (metricKey === 'overtimeRate') {
+        if (clockedIn.length === 0) continue
+        const otDays = clockedIn.filter(r => (r.totalHours ?? 0) > 9)
+        const otHrs  = clockedIn.reduce((s, r) => s + Math.max(0, (r.totalHours ?? 0) - 9), 0)
+        rows.push({
+          name: emp.name, department: emp.dept,
+          value: Math.round((otDays.length / clockedIn.length) * 100),
+          detail: otDays.length > 0 ? `${otDays.length} days · ${otHrs.toFixed(1)}h OT` : 'No overtime',
+        })
+      } else if (metricKey === 'absenteeism') {
+        if (emp.recs.length === 0) continue
+        const absent = emp.recs.filter(r => r.status === 'ABSENT' || !r.clockIn).length
+        rows.push({
+          name: emp.name, department: emp.dept,
+          value: Math.round((absent / emp.recs.length) * 100),
+          detail: `${absent}/${emp.recs.length} days absent`,
+        })
+      } else if (metricKey === 'shiftAdherence') {
+        if (emp.recs.length === 0) continue
+        const adhered = emp.recs.filter(r => r.clockIn).length
+        rows.push({
+          name: emp.name, department: emp.dept,
+          value: Math.round((adhered / emp.recs.length) * 100),
+          detail: `${adhered}/${emp.recs.length} shifts`,
+        })
+      }
+    }
+
+    // Sort: worst performers first
+    rows.sort((a, b) => {
+      if (a.value === null) return 1
+      if (b.value === null) return -1
+      return higherIsBetter ? (a.value - b.value) : (b.value - a.value)
+    })
+
+    return rows
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, allAtt, effectiveToday, period, activeDays, metricKey, higherIsBetter])
 
   const atTarget = currentValue === null ? null
     : higherIsBetter ? currentValue >= target : currentValue <= target
 
-  const numberColor = currentValue === null ? 'text-[hsl(215_35%_18%)]'
-    : atTarget ? 'text-[hsl(215_35%_18%)]' : 'text-red-600'
+  const numberColor = !atTarget && atTarget !== null ? 'text-red-600' : 'text-[hsl(215_35%_18%)]'
+
+  const effectiveDateLabel = effectiveToday
+    ? new Date(effectiveToday + 'T12:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+    : ''
 
   return (
     <div className="min-h-screen bg-background">
@@ -112,7 +223,6 @@ export default function MetricPage({ metricKey, label, description, explanation,
           <h1 className="text-4xl font-black text-foreground tracking-tight">{label}</h1>
           <p className="text-sm text-foreground/50 mt-1.5">{description}</p>
         </div>
-        {/* Period toggle */}
         <div className="flex items-center gap-1 bg-card border border-foreground/10 rounded-lg p-1 mt-1">
           {(['today', 'week', 'month'] as Period[]).map(p => (
             <button
@@ -140,12 +250,15 @@ export default function MetricPage({ metricKey, label, description, explanation,
               {currentValue}
             </span>
             <span className="text-4xl font-bold text-foreground/30 mb-4">%</span>
-            <div className="mb-5 flex items-center gap-1.5 text-xs">
+            <div className="mb-5 flex items-center gap-1.5 text-xs flex-wrap">
               <span className={`inline-block w-1.5 h-1.5 rounded-full ${atTarget ? 'bg-green-500' : 'bg-red-500'}`} />
               <span className={`font-semibold ${atTarget ? 'text-green-600' : 'text-red-500'}`}>
-                {atTarget ? 'Above target' : 'Below target'}
+                {atTarget ? 'On target' : 'Below target'}
               </span>
               <span className="text-foreground/35">· Target {higherIsBetter ? '≥' : '≤'}{target}%</span>
+              {effectiveToday && effectiveToday !== systemToday && (
+                <span className="text-foreground/35">· Data up to {effectiveDateLabel}</span>
+              )}
             </div>
           </div>
         ) : (
@@ -162,7 +275,7 @@ export default function MetricPage({ metricKey, label, description, explanation,
       <div className="px-10 pt-8">
         <div className="flex items-center justify-between mb-6">
           <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-foreground/40">Trend</p>
-          <p className="text-xs text-foreground/35">Last 7 days</p>
+          <p className="text-xs text-foreground/35">{period === 'month' ? 'Last 30 days' : 'Last 7 days'}</p>
         </div>
 
         <div className="bg-card border border-foreground/8 rounded-xl p-6">
@@ -203,6 +316,45 @@ export default function MetricPage({ metricKey, label, description, explanation,
           </ResponsiveContainer>
         </div>
       </div>
+
+      {/* Per-employee breakdown */}
+      {!loading && employeeRows.length > 0 && (
+        <div className="px-10 pt-10 pb-12">
+          <div className="flex items-center justify-between mb-4">
+            <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-foreground/40">By Employee</p>
+            <p className="text-xs text-foreground/35">{employeeRows.length} employees · worst first</p>
+          </div>
+          <div className="bg-card border border-foreground/8 rounded-xl overflow-hidden">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b border-foreground/8">
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Employee</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold tracking-wider uppercase text-foreground/40 hidden md:table-cell">Department</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Detail</th>
+                  <th className="text-right px-5 py-3 text-[10px] font-semibold tracking-wider uppercase text-foreground/40">Rate</th>
+                </tr>
+              </thead>
+              <tbody>
+                {employeeRows.map((row, i) => {
+                  const good = row.value !== null && (higherIsBetter ? row.value >= target : row.value <= target)
+                  return (
+                    <tr key={i} className="border-b border-foreground/5 last:border-0 hover:bg-foreground/[0.02]">
+                      <td className="px-5 py-3 font-medium text-foreground">{row.name}</td>
+                      <td className="px-5 py-3 text-foreground/50 hidden md:table-cell">{row.department}</td>
+                      <td className="px-5 py-3 text-foreground/50">{row.detail}</td>
+                      <td className="px-5 py-3 text-right">
+                        <span className={`font-bold tabular-nums ${good ? 'text-foreground' : 'text-red-500'}`}>
+                          {row.value !== null ? `${row.value}%` : '—'}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
