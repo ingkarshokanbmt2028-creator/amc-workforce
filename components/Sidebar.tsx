@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation'
 import { useAuth, ROLE_LABELS } from '@/lib/auth'
 import {
   LogOut, Home, CalendarDays, Clock,
-  BarChart3, Download, BookOpen, Settings,
+  BarChart3, BookOpen, Settings,
   PanelLeftClose, PanelLeftOpen, FileText,
 } from 'lucide-react'
 import { useState } from 'react'
@@ -25,10 +25,9 @@ const NAV_METRICS = [
 ]
 
 const NAV_TOOLS = [
-  { href: '/report/exports', label: 'Reports',    Icon: Download,  exact: true },
-  { href: '/report',         label: 'CEO Report', Icon: FileText,  exact: true },
-  { href: '/resources',      label: 'Resources',  Icon: BookOpen,  exact: false },
-  { href: '/settings',       label: 'Settings',   Icon: Settings,  exact: false },
+  { href: '/report',     label: 'CEO Report', Icon: FileText,  exact: true  },
+  { href: '/resources',  label: 'Resources',  Icon: BookOpen,  exact: false },
+  { href: '/settings',   label: 'Settings',   Icon: Settings,  exact: false },
 ]
 
 function NavItem({
