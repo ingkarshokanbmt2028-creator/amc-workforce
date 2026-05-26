@@ -245,20 +245,22 @@ export default function MetricPage({ metricKey, label, description, explanation,
         {loading ? (
           <p className="text-3xl font-bold text-foreground/20 animate-pulse">Loading…</p>
         ) : currentValue !== null ? (
-          <div className="flex items-end gap-3">
-            <span className={`text-[7rem] font-black leading-none tracking-tighter ${numberColor}`}>
+          <div className="flex items-end gap-2">
+            <span className={`text-[9rem] font-black leading-none tracking-tighter ${numberColor}`}>
               {currentValue}
             </span>
-            <span className="text-4xl font-bold text-foreground/30 mb-4">%</span>
-            <div className="mb-5 flex items-center gap-1.5 text-xs flex-wrap">
-              <span className={`inline-block w-1.5 h-1.5 rounded-full ${atTarget ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className={`font-semibold ${atTarget ? 'text-green-600' : 'text-red-500'}`}>
-                {atTarget ? 'On target' : 'Below target'}
-              </span>
-              <span className="text-foreground/35">· Target {higherIsBetter ? '≥' : '≤'}{target}%</span>
-              {effectiveToday && effectiveToday !== systemToday && (
-                <span className="text-foreground/35">· Data up to {effectiveDateLabel}</span>
-              )}
+            <div className="mb-6 flex items-center gap-2.5">
+              <span className="text-5xl font-bold text-foreground/25">%</span>
+              <div className="flex items-center gap-1.5 text-sm">
+                <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${atTarget ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className={`font-semibold ${atTarget ? 'text-green-600' : 'text-red-500'}`}>
+                  {atTarget ? 'On target' : 'Below target'}
+                </span>
+                <span className="text-foreground/35">· Target {higherIsBetter ? '≥' : '≤'}{target}%</span>
+                {effectiveToday && effectiveToday !== systemToday && (
+                  <span className="text-foreground/35">· Data up to {effectiveDateLabel}</span>
+                )}
+              </div>
             </div>
           </div>
         ) : (
