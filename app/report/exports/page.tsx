@@ -5,12 +5,14 @@ import Link from 'next/link'
 
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
+interface Dept { id: string; name: string }
+
 interface Stats {
   employees: number
   records: number
-  missedIn: number
-  missedOut: number
-  departments: { id: string; name: string }[]
+  missedPunches: number
+  totalDeductions: number
+  departments: Dept[]
 }
 
 export default function ReportsExportsPage() {
@@ -22,18 +24,22 @@ export default function ReportsExportsPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    setLoading(true)
     Promise.all([
       fetch('/api/employees').then(r => r.json()),
       fetch(`/api/attendance?month=${month}&year=${year}&limit=10000`).then(r => r.json()),
       fetch('/api/departments').then(r => r.json()),
     ]).then(([emps, attData, depts]) => {
-      const att = attData.attendance ?? []
+      const att: any[] = attData.attendance ?? []
       const filtered = deptFilter === 'all' ? att : att.filter((a: any) => a.employee?.departmentId === deptFilter)
+      const missedPunches = filtered.filter((a: any) => !a.clockIn || (a.clockIn && !a.clockOut)).length
+      // Estimate deductions: late arrivals + missed punches × avg deduction (GH₵ 50/event)
+      const deductions = missedPunches * 50 + filtered.filter((a: any) => a.lateMinutes > 0).length * 30
       setStats({
         employees: (emps as any[]).length,
-        records:   filtered.length,
-        missedIn:  filtered.filter((a: any) => !a.clockIn).length,
-        missedOut: filtered.filter((a: any) => a.clockIn && !a.clockOut).length,
+        records: filtered.length,
+        missedPunches,
+        totalDeductions: deductions,
         departments: (depts as any[]).map((d: any) => ({ id: d.id, name: d.name })),
       })
       setLoading(false)
@@ -49,7 +55,7 @@ export default function ReportsExportsPage() {
     URL.revokeObjectURL(url)
   }
 
-  async function handleDownload(type: 'attendance' | 'employees') {
+  async function handleDownload(type: 'attendance' | 'employees' | 'deductions') {
     if (type === 'attendance') {
       const res = await fetch(`/api/attendance?month=${month}&year=${year}&limit=10000`)
       const { attendance } = await res.json()
@@ -60,7 +66,7 @@ export default function ReportsExportsPage() {
           a.employee?.name ?? '',
           a.employee?.department?.name ?? '',
           a.date?.slice(0, 10) ?? '',
-          a.clockIn ? new Date(a.clockIn).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '',
+          a.clockIn  ? new Date(a.clockIn).toLocaleTimeString('en-GB',  { hour: '2-digit', minute: '2-digit' }) : '',
           a.clockOut ? new Date(a.clockOut).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '',
           a.totalHours?.toFixed(1) ?? '',
           a.status ?? '',
@@ -68,7 +74,7 @@ export default function ReportsExportsPage() {
         ]),
       ]
       downloadCSV(rows, `attendance-${MONTHS[month-1].toLowerCase()}-${year}.csv`)
-    } else {
+    } else if (type === 'employees') {
       const res = await fetch('/api/employees')
       const emps = await res.json()
       const rows = [
@@ -76,6 +82,28 @@ export default function ReportsExportsPage() {
         ...(emps as any[]).map(e => [e.staffId, e.name, e.department?.name ?? '', e.position, e.employeeType, e.status, e.location ?? '']),
       ]
       downloadCSV(rows, `employees-${year}.csv`)
+    } else {
+      // Credit & Deduction report
+      const res = await fetch(`/api/attendance?month=${month}&year=${year}&limit=10000`)
+      const { attendance } = await res.json()
+      const rows = [
+        ['Staff ID', 'Name', 'Department', 'Late Minutes', 'Missed Punch', 'Late Deduction (GH₵)', 'Missed Punch Deduction (GH₵)', 'Total Deduction (GH₵)'],
+        ...attendance.map((a: any) => {
+          const lateDed  = a.lateMinutes > 0 ? 30 : 0
+          const missDed  = (!a.clockIn || (a.clockIn && !a.clockOut)) ? 50 : 0
+          return [
+            a.employee?.staffId ?? '',
+            a.employee?.name ?? '',
+            a.employee?.department?.name ?? '',
+            a.lateMinutes ?? 0,
+            (!a.clockIn || (a.clockIn && !a.clockOut)) ? 'Yes' : 'No',
+            lateDed,
+            missDed,
+            lateDed + missDed,
+          ]
+        }),
+      ]
+      downloadCSV(rows, `deductions-${MONTHS[month-1].toLowerCase()}-${year}.csv`)
     }
   }
 
@@ -85,10 +113,17 @@ export default function ReportsExportsPage() {
     <div className="px-10 pt-10 pb-12">
       {/* Header */}
       <div className="mb-8 flex items-start justify-between">
-        <div>
-          <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-foreground/40 mb-2">Reports</p>
-          <h1 className="text-4xl font-black text-foreground tracking-tight">Reports & Exports</h1>
-          <p className="text-sm text-foreground/50 mt-1.5">Download or print attendance and payroll data</p>
+        <div className="flex items-center gap-4">
+          <Link href="/" className="text-foreground/40 hover:text-foreground transition-colors">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+          </Link>
+          <div>
+            <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-foreground/40 mb-1">Reports</p>
+            <h1 className="text-4xl font-black text-foreground tracking-tight">Reports & Exports</h1>
+            <p className="text-sm text-foreground/50 mt-1.5">Download or print attendance and payroll data</p>
+          </div>
         </div>
         <Link
           href="/report"
@@ -101,17 +136,32 @@ export default function ReportsExportsPage() {
         </Link>
       </div>
 
+      {/* Filter */}
+      <div className="flex items-center gap-3 mb-6">
+        <span className="text-sm text-foreground/50 font-medium">Filter by:</span>
+        <select
+          value={deptFilter}
+          onChange={e => setDeptFilter(e.target.value)}
+          className="px-3 py-1.5 rounded-lg border border-foreground/15 bg-card text-sm text-foreground focus:outline-none"
+        >
+          <option value="all">All Departments</option>
+          {stats?.departments.map(d => (
+            <option key={d.id} value={d.id}>{d.name}</option>
+          ))}
+        </select>
+      </div>
+
       {/* Stats */}
       {!loading && stats && (
         <div className="grid grid-cols-4 gap-4 mb-8">
           {[
-            { label: 'Employees',     value: stats.employees, color: 'text-foreground' },
-            { label: 'Att. Records',  value: stats.records,   color: 'text-foreground' },
-            { label: 'Missed Clock-in',  value: stats.missedIn,  color: stats.missedIn > 0 ? 'text-red-500' : 'text-foreground' },
-            { label: 'Missed Clock-out', value: stats.missedOut, color: stats.missedOut > 0 ? 'text-amber-600' : 'text-foreground' },
+            { label: 'Employees',        value: stats.employees,       color: 'text-foreground',  fmt: (v: number) => v.toString() },
+            { label: 'Att. Records',     value: stats.records,         color: 'text-foreground',  fmt: (v: number) => v.toString() },
+            { label: 'Missed Punches',   value: stats.missedPunches,   color: stats.missedPunches > 0 ? 'text-red-500' : 'text-foreground', fmt: (v: number) => v.toString() },
+            { label: 'Total Deductions', value: stats.totalDeductions, color: stats.totalDeductions > 0 ? 'text-red-500' : 'text-foreground', fmt: (v: number) => `GH₵${v.toLocaleString()}` },
           ].map(s => (
             <div key={s.label} className="bg-card border border-foreground/10 rounded-xl p-5">
-              <p className={`text-3xl font-black tracking-tight ${s.color}`}>{s.value}</p>
+              <p className={`text-3xl font-black tracking-tight ${s.color}`}>{s.fmt(s.value)}</p>
               <p className="text-xs text-foreground/40 mt-1">{s.label}</p>
             </div>
           ))}
@@ -124,8 +174,9 @@ export default function ReportsExportsPage() {
       <div className="space-y-3">
         {[
           {
+            key: 'attendance',
             title: 'Attendance Records',
-            desc: `Clock-in/out times, missed punches, overtime status for every shift`,
+            desc: 'Clock-in/out times, missed punches, overtime status for every shift',
             sub: `${stats?.records ?? '—'} records · ${monthLabel}`,
             icon: (
               <svg className="w-5 h-5 text-foreground/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -135,8 +186,21 @@ export default function ReportsExportsPage() {
             onDownload: () => handleDownload('attendance'),
           },
           {
+            key: 'deductions',
+            title: 'Credit & Deduction Report',
+            desc: 'Late arrival and missed punch deductions per employee for payroll',
+            sub: `${stats?.missedPunches ?? '—'} events · ${monthLabel}`,
+            icon: (
+              <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            ),
+            onDownload: () => handleDownload('deductions'),
+          },
+          {
+            key: 'employees',
             title: 'Employee Directory',
-            desc: 'Staff list with codes, departments, positions, and department heads',
+            desc: 'Staff list with codes, departments, positions, and employment type',
             sub: `${stats?.employees ?? '—'} employees · ${monthLabel}`,
             icon: (
               <svg className="w-5 h-5 text-foreground/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -146,7 +210,7 @@ export default function ReportsExportsPage() {
             onDownload: () => handleDownload('employees'),
           },
         ].map(card => (
-          <div key={card.title} className="bg-card border border-foreground/10 rounded-xl p-5 flex items-center gap-4">
+          <div key={card.key} className="bg-card border border-foreground/10 rounded-xl p-5 flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg bg-foreground/5 flex items-center justify-center flex-shrink-0">
               {card.icon}
             </div>
