@@ -95,9 +95,26 @@ export default function MetricPage({ metricKey, label, description, explanation,
       dates.sort()
       setEffectiveToday(dates[dates.length - 1] ?? systemToday)
 
+      // Build name → real DB employee ID map from attendance data
+      const nameToId = new Map<string, string>()
+      for (const rec of records) {
+        if (rec.employeeName && rec.employeeId) {
+          nameToId.set(rec.employeeName.toLowerCase().trim(), rec.employeeId)
+        }
+      }
+
       const ids = new Set<string>()
-      for (const roster of (rosters as { slots: { employeeId: string }[] }[])) {
-        for (const slot of roster.slots) ids.add(slot.employeeId)
+      for (const roster of (rosters as { slots: { employeeId: string; employee?: { name?: string } }[] }[])) {
+        for (const slot of roster.slots) {
+          if (slot.employeeId.startsWith('mock-')) {
+            // Mock data: match by employee name to find the real DB ID
+            const rawName = (slot.employee?.name ?? '').replace(/\s*\(Locum\)/i, '').trim().toLowerCase()
+            const realId = nameToId.get(rawName)
+            if (realId) ids.add(realId)
+          } else {
+            ids.add(slot.employeeId)
+          }
+        }
       }
       setRostered(ids)
       setLoading(false)
