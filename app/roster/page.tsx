@@ -1,14 +1,19 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
-import { SHIFT_COLORS, SHIFT_LABELS, SHIFT_TIMES, SHIFT_HOURS } from '@/lib/shifts'
+import { SHIFT_LABELS } from '@/lib/shifts'
 import { ShiftModal } from '@/components/roster/ShiftModal'
 import { EmployeeDetailSheet } from '@/components/roster/EmployeeDetailSheet'
+import { Pencil, Plus, Download, Wifi } from 'lucide-react'
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
 interface Department { id: string; name: string; code: string }
-interface Employee { id: string; staffId: string; name: string; departmentId: string; expectedMonthlyHours: number; employeeType: string; position: string; location?: string; status: string; department?: { name: string; code: string } }
+interface Employee {
+  id: string; staffId: string; name: string; departmentId: string
+  expectedMonthlyHours: number; employeeType: string; position: string
+  location?: string; status: string; department?: { name: string; code: string }
+}
 interface RosterSlot {
   id: string; employeeId: string; date: string; shiftType: string; isEmergency: boolean
   employee?: { name: string; expectedMonthlyHours: number; departmentId: string }
@@ -17,126 +22,62 @@ interface Roster { id: string; status: string; departmentId: string; slots: Rost
 
 // ── Constants ──────────────────────────────────────────────────────────────────
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
-const DOW_LABELS = ['MON','TUE','WED','THU','FRI','SAT','SUN']
-
-const LEGEND_SHIFTS = ['MORNING','AFTERNOON','NIGHT','DAY','LATE','PM_SHIFT','ON_CALL','OFF','ANNUAL_LEAVE','MATERNITY_LEAVE','SICK_LEAVE']
-
-function fmt12(t?: string) {
-  if (!t) return '—'
-  const [h, m] = t.split(':').map(Number)
-  const ampm = h >= 12 ? 'PM' : 'AM'
-  return `${h % 12 || 12}:${String(m).padStart(2,'0')} ${ampm}`
-}
-
-// ── Helpers ────────────────────────────────────────────────────────────────────
-
-function getWeeksInMonth(year: number, month: number) {
-  const daysInMonth = new Date(year, month, 0).getDate()
-  const weeks: { label: string; start: number; end: number }[] = []
-  let start = 1
-  while (start <= daysInMonth) {
-    const end = Math.min(start + 6, daysInMonth)
-    const s = new Date(year, month - 1, start)
-    const e = new Date(year, month - 1, end)
-    const fmt = (d: Date) => `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}`
-    weeks.push({ label: `W${weeks.length + 1}`, start, end })
-    start = end + 1
-  }
-  return weeks
-}
+const MONTHS = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December',
+]
+const DOW_LETTER = ['S','M','T','W','T','F','S'] // 0=Sun
 
 function isoDate(year: number, month: number, day: number) {
   return `${year}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`
 }
 
-// ── Shift Legend ───────────────────────────────────────────────────────────────
+function addMonths(y: number, m: number, delta: number): { year: number; month: number } {
+  let newM = m + delta
+  let newY = y
+  while (newM > 12) { newM -= 12; newY++ }
+  while (newM < 1)  { newM += 12; newY-- }
+  return { year: newY, month: newM }
+}
 
-function ShiftLegend() {
-  return (
-    <div className="rounded-xl border border-border bg-muted/30 p-4">
-      <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Shift Structure</p>
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-6 gap-2">
-        {LEGEND_SHIFTS.map((s) => {
-          const times = SHIFT_TIMES[s]
-          const hours = SHIFT_HOURS[s]
-          const color = SHIFT_COLORS[s] ?? 'bg-slate-100 text-slate-600'
-          return (
-            <div key={s} className={`rounded-lg px-3 py-2 ${color}`}>
-              <p className="font-bold text-xs">{SHIFT_LABELS[s]} — {s.replace(/_/g,' ')}</p>
-              {times
-                ? <p className="text-xs opacity-80 mt-0.5">{fmt12(times.start)} – {fmt12(times.end)}</p>
-                : <p className="text-xs opacity-60 mt-0.5">—</p>}
-              {hours !== undefined && hours > 0 && (
-                <p className="text-xs font-semibold mt-0.5">{hours} hrs</p>
-              )}
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
+function monthDays(year: number, month: number): Date[] {
+  const n = new Date(year, month, 0).getDate()
+  return Array.from({ length: n }, (_, i) => new Date(year, month - 1, i + 1))
 }
 
 // ── Main Page ──────────────────────────────────────────────────────────────────
 
 export default function RosterPage() {
   const now = new Date()
-  const [month, setMonth] = useState(now.getMonth() + 1)
-  const [year, setYear] = useState(now.getFullYear())
-  const [weekIdx, setWeekIdx] = useState(0)
 
-  const [departments, setDepartments] = useState<Department[]>([])
+  // Selected month
+  const [selMonth, setSelMonth] = useState(now.getMonth() + 1)
+  const [selYear,  setSelYear]  = useState(now.getFullYear())
+
+  // 3-month navigation window — starts so selected month is first
+  const [winStart, setWinStart] = useState({ year: now.getFullYear(), month: now.getMonth() + 1 })
+
+  // View mode
+  const [byDept, setByDept] = useState(true)
+  const [editMode, setEditMode] = useState(false)
+
+  const [departments, setDepartments]   = useState<Department[]>([])
   const [allEmployees, setAllEmployees] = useState<Employee[]>([])
-  const [activeDeptId, setActiveDeptId] = useState<string | 'ALL'>('ALL')
-  const [search, setSearch] = useState('')
-
-  // Rosters for all depts in this month
-  const [rosters, setRosters] = useState<Roster[]>([])
-  const [loading, setLoading] = useState(false)
-  const [publishing, setPublishing] = useState(false)
+  const [rosters, setRosters]           = useState<Roster[]>([])
+  const [loading, setLoading]           = useState(false)
+  const [activeDeptId, setActiveDeptId] = useState<string>('')
+  const [search, setSearch]             = useState('')
+  const [publishing, setPublishing]     = useState(false)
 
   // Modal state
   const [modal, setModal] = useState<{
-    rosterId: string; slotId?: string; employeeId: string; employeeName: string; date: string; currentShift: string | null; deptCode?: string
+    rosterId: string; slotId?: string; employeeId: string
+    employeeName: string; date: string; currentShift: string | null; deptCode?: string
   } | null>(null)
-
-  // Remove employee confirm
   const [removeConfirm, setRemoveConfirm] = useState<{ id: string; name: string } | null>(null)
-  // Employee detail sheet
   const [detailEmployee, setDetailEmployee] = useState<Employee | null>(null)
 
-  async function handleRemoveEmployee(id: string) {
-    await fetch(`/api/employees/${id}`, { method: 'DELETE' })
-    setAllEmployees(prev => prev.filter(e => e.id !== id))
-    setRemoveConfirm(null)
-  }
-
-  // Weeks for selected month
-  const weeks = useMemo(() => getWeeksInMonth(year, month), [year, month])
-  const week = weeks[weekIdx] ?? weeks[0]
-
-  // Days in selected week
-  const weekDays = useMemo(() => {
-    if (!week) return []
-    const days: Date[] = []
-    for (let d = week.start; d <= week.end; d++) {
-      days.push(new Date(year, month - 1, d))
-    }
-    // Pad to 7 days (Mon–Sun) by reordering so Mon is first
-    // Sort: Mon=1..Sun=0 → use getDay(), remap 0→7
-    days.sort((a, b) => {
-      const da = a.getDay() === 0 ? 7 : a.getDay()
-      const db = b.getDay() === 0 ? 7 : b.getDay()
-      return da - db
-    })
-    return days
-  }, [week, year, month])
-
-  // Reset week when month changes
-  useEffect(() => { setWeekIdx(0) }, [month, year])
-
-  // Load departments + all employees once
+  // ── Load data ────────────────────────────────────────────────────────────
   useEffect(() => {
     Promise.all([
       fetch('/api/departments').then(r => r.json()),
@@ -144,32 +85,33 @@ export default function RosterPage() {
     ]).then(([depts, emps]: [Department[], Employee[]]) => {
       setDepartments(depts)
       setAllEmployees(emps)
+      if (depts.length > 0 && !activeDeptId) {
+        setActiveDeptId(depts[0].id)
+      }
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // Load rosters for this month
   const fetchRosters = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/roster?month=${month}&year=${year}`)
+      const res = await fetch(`/api/roster?month=${selMonth}&year=${selYear}`)
       if (res.ok) setRosters(await res.json())
     } finally {
       setLoading(false)
     }
-  }, [month, year])
+  }, [selMonth, selYear])
 
   useEffect(() => { fetchRosters() }, [fetchRosters])
 
-  // Employee count per dept
-  const countByDept = useMemo(() => {
-    const m = new Map<string, number>()
-    for (const e of allEmployees) {
-      m.set(e.departmentId, (m.get(e.departmentId) ?? 0) + 1)
+  // Auto-set first dept when departments load
+  useEffect(() => {
+    if (departments.length > 0 && !activeDeptId) {
+      setActiveDeptId(departments[0].id)
     }
-    return m
-  }, [allEmployees])
+  }, [departments, activeDeptId])
 
-  // Build slot lookup: employeeId → dateKey → slot
+  // ── Slot lookup ───────────────────────────────────────────────────────────
   const slotMap = useMemo(() => {
     const map = new Map<string, Map<string, RosterSlot & { rosterId: string }>>()
     for (const roster of rosters) {
@@ -181,52 +123,80 @@ export default function RosterPage() {
     return map
   }, [rosters])
 
-  // Employees to show (filtered by dept + search), LOCUM always at bottom
-  const visibleEmployees = useMemo(() => {
-    let emps = allEmployees
-    if (activeDeptId !== 'ALL') emps = emps.filter(e => e.departmentId === activeDeptId)
+  const deptById = useMemo(() => new Map(departments.map(d => [d.id, d])), [departments])
+
+  const countByDept = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const e of allEmployees) m.set(e.departmentId, (m.get(e.departmentId) ?? 0) + 1)
+    return m
+  }, [allEmployees])
+
+  // Employees for selected dept (roster view)
+  const rosterEmployees = useMemo(() => {
+    let emps = byDept
+      ? allEmployees.filter(e => e.departmentId === activeDeptId)
+      : allEmployees
     if (search.trim()) {
       const q = search.toLowerCase()
-      emps = emps.filter(e => e.name.toLowerCase().includes(q))
+      emps = emps.filter(e => e.name.toLowerCase().includes(q) || e.staffId.toLowerCase().includes(q))
     }
     return emps.sort((a, b) => {
       if (a.employeeType === 'LOCUM' && b.employeeType !== 'LOCUM') return 1
       if (a.employeeType !== 'LOCUM' && b.employeeType === 'LOCUM') return -1
       return a.name.localeCompare(b.name)
     })
-  }, [allEmployees, activeDeptId, search])
+  }, [allEmployees, activeDeptId, byDept, search])
 
-  // Group visible employees by dept (for section headers)
-  const employeesByDept = useMemo(() => {
+  // Group by dept (for all-depts view)
+  const empsByDept = useMemo(() => {
     const groups = new Map<string, Employee[]>()
-    for (const e of visibleEmployees) {
+    for (const e of rosterEmployees) {
       if (!groups.has(e.departmentId)) groups.set(e.departmentId, [])
       groups.get(e.departmentId)!.push(e)
     }
     return groups
-  }, [visibleEmployees])
+  }, [rosterEmployees])
 
-  const deptById = useMemo(() => new Map(departments.map(d => [d.id, d])), [departments])
+  const days = useMemo(() => monthDays(selYear, selMonth), [selYear, selMonth])
 
-  async function handleSlotClick(rosterId: string, slotId: string | undefined, employeeId: string, employeeName: string, date: string, currentShift: string | null, deptCode?: string) {
+  // ── 3-month window ────────────────────────────────────────────────────────
+  const windowMonths = useMemo(() => [
+    winStart,
+    addMonths(winStart.year, winStart.month, 1),
+    addMonths(winStart.year, winStart.month, 2),
+  ], [winStart])
+
+  function selectMonth(y: number, m: number) {
+    setSelYear(y)
+    setSelMonth(m)
+  }
+
+  function shiftWindow(delta: number) {
+    setWinStart(prev => addMonths(prev.year, prev.month, delta))
+  }
+
+  // ── Slot actions ──────────────────────────────────────────────────────────
+  async function handleSlotClick(
+    rosterId: string, slotId: string | undefined,
+    employeeId: string, employeeName: string,
+    date: string, currentShift: string | null, deptCode?: string
+  ) {
+    if (!editMode) return
     setModal({ rosterId, slotId, employeeId, employeeName, date, currentShift, deptCode })
   }
 
   async function handleShiftSave(shiftType: string) {
     if (!modal) return
     const slot = slotMap.get(modal.employeeId)?.get(modal.date)
-
-    // Need a roster for this employee's dept in this month
-    const emp = allEmployees.find(e => e.id === modal.employeeId)
+    const emp  = allEmployees.find(e => e.id === modal.employeeId)
     if (!emp) return
 
     let roster = rosters.find(r => r.departmentId === emp.departmentId)
     if (!roster) {
-      // Create roster for this dept
       const res = await fetch('/api/roster', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ departmentId: emp.departmentId, month, year, createdBy: 'admin' }),
+        body: JSON.stringify({ departmentId: emp.departmentId, month: selMonth, year: selYear, createdBy: 'admin' }),
       })
       if (!res.ok) return
       roster = await res.json()
@@ -262,167 +232,234 @@ export default function RosterPage() {
     fetchRosters()
   }
 
-  const weekLabel = week
-    ? `${MONTHS[month-1].slice(0,3)} ${week.start}${week.start !== week.end ? ` – ${week.end}` : ''}`
-    : ''
+  async function handleRemoveEmployee(id: string) {
+    await fetch(`/api/employees/${id}`, { method: 'DELETE' })
+    setAllEmployees(prev => prev.filter(e => e.id !== id))
+    setRemoveConfirm(null)
+  }
+
+  function handleExport() {
+    const csv = [
+      ['Employee', 'StaffID', 'Dept', 'Date', 'Shift'],
+      ...rosterEmployees.flatMap(e =>
+        days.map(d => {
+          const dateKey = isoDate(selYear, selMonth, d.getDate())
+          const slot = slotMap.get(e.id)?.get(dateKey)
+          return [e.name, e.staffId, deptById.get(e.departmentId)?.code ?? '', dateKey, slot?.shiftType ?? '']
+        })
+      ),
+    ].map(r => r.join(',')).join('\n')
+    const a = document.createElement('a')
+    a.href = 'data:text/csv,' + encodeURIComponent(csv)
+    a.download = `roster_${selMonth}_${selYear}.csv`
+    a.click()
+  }
+
+  // Which depts to render in the table
+  const tableGroups: { deptId: string; emps: Employee[] }[] = byDept
+    ? (activeDeptId && rosterEmployees.length > 0 ? [{ deptId: activeDeptId, emps: rosterEmployees }] : [])
+    : Array.from(empsByDept.entries()).map(([deptId, emps]) => ({ deptId, emps }))
+
+  const monthsWithRosters = useMemo(() => {
+    return new Set(rosters.map(r => `${selYear}-${selMonth}`))
+  }, [rosters, selYear, selMonth])
 
   return (
-    <div className="p-6 space-y-5 max-w-[1600px] mx-auto">
+    <div className="min-h-screen bg-background">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* ── Header ── */}
+      <div className="px-8 pt-8 pb-0 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Duty Roster</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            {MONTHS[month-1]} {year} · {departments.length} departments · {allEmployees.length} staff
+          <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-foreground/40 mb-1.5">
+            Duty Roster
           </p>
+          <h1 className="text-[2.25rem] font-black text-foreground tracking-tight leading-none">
+            Schedules
+          </h1>
+          <div className="flex items-center gap-2 mt-2 text-sm text-foreground/45">
+            <Wifi className="w-3.5 h-3.5 text-green-500" />
+            <span>BioTime connected</span>
+            <span>·</span>
+            <span>{rosters.length} rosters</span>
+            <span>·</span>
+            <span>{departments.length} departments</span>
+          </div>
         </div>
-        <div className="flex gap-2">
+
+        {/* Action buttons */}
+        <div className="flex items-center gap-2 mt-1">
           <button
-            onClick={() => {
-              const csv = [['Employee','Dept','Date','Shift'],...visibleEmployees.flatMap(e =>
-                weekDays.map(d => {
-                  const key = isoDate(year, month, d.getDate())
-                  const slot = slotMap.get(e.id)?.get(key)
-                  return [e.name, deptById.get(e.departmentId)?.code ?? '', key, slot?.shiftType ?? '']
-                })
-              )].map(r => r.join(',')).join('\n')
-              const a = document.createElement('a')
-              a.href = 'data:text/csv,' + encodeURIComponent(csv)
-              a.download = `roster_${month}_${year}.csv`
-              a.click()
-            }}
-            className="px-4 py-2 rounded-lg border border-border text-sm font-medium hover:bg-muted transition-colors"
+            onClick={() => setEditMode(e => !e)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[13px] font-medium transition-all ${
+              editMode
+                ? 'bg-foreground text-background border-foreground'
+                : 'border-foreground/15 text-foreground/70 hover:bg-foreground/[0.04]'
+            }`}
           >
-            Export CSV
+            <Pencil className="w-3.5 h-3.5" />
+            Edit
+          </button>
+          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-foreground/15 text-[13px] font-medium text-foreground/70 hover:bg-foreground/[0.04] transition-colors">
+            <Plus className="w-3.5 h-3.5" />
+            Month
+          </button>
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-foreground/15 text-[13px] font-medium text-foreground/70 hover:bg-foreground/[0.04] transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Export
           </button>
         </div>
       </div>
 
-      {/* Month tabs + Week navigation */}
-      <div className="flex flex-wrap items-center gap-3">
-        {/* Month tabs */}
-        <div className="flex rounded-lg border border-border overflow-hidden">
-          {[1,2,3,4,5,6,7,8,9,10,11,12].filter(m => {
-            const hasRoster = rosters.some(r => r !== undefined) || true
-            return true // show all months; grey out ones with no data later
-          }).map(m => (
-            <button
-              key={m}
-              onClick={() => setMonth(m)}
-              className={`px-4 py-2 text-sm font-medium transition-colors ${
-                m === month
-                  ? 'bg-foreground text-background'
-                  : 'hover:bg-muted text-muted-foreground'
-              }`}
-            >
-              {MONTHS[m-1].slice(0,3)}
-            </button>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-1">
-          <button
-            onClick={() => setWeekIdx(i => Math.max(0, i - 1))}
-            disabled={weekIdx === 0}
-            className="w-8 h-8 rounded border border-border flex items-center justify-center text-sm hover:bg-muted disabled:opacity-30"
-          >‹</button>
-          {weeks.map((w, i) => (
-            <button
-              key={w.label}
-              onClick={() => setWeekIdx(i)}
-              className={`px-3 py-1.5 rounded text-sm font-medium transition-colors ${
-                i === weekIdx ? 'bg-foreground text-background' : 'border border-border hover:bg-muted text-muted-foreground'
-              }`}
-            >
-              {w.label}
-            </button>
-          ))}
-          <button
-            onClick={() => setWeekIdx(i => Math.min(weeks.length - 1, i + 1))}
-            disabled={weekIdx === weeks.length - 1}
-            className="w-8 h-8 rounded border border-border flex items-center justify-center text-sm hover:bg-muted disabled:opacity-30"
-          >›</button>
-        </div>
-
-        <span className="px-3 py-1.5 rounded-full bg-muted text-sm font-medium">{weekLabel}</span>
-      </div>
-
-      {/* Department dropdown */}
-      <div className="flex items-center gap-3">
-        <select
-          value={activeDeptId}
-          onChange={e => setActiveDeptId(e.target.value)}
-          className="rounded-lg border border-border bg-background text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-ring min-w-[200px]"
+      {/* ── Month navigation ── */}
+      <div className="px-8 pt-6 flex items-center gap-3">
+        <button
+          onClick={() => shiftWindow(-1)}
+          className="w-7 h-7 flex items-center justify-center rounded text-foreground/40 hover:text-foreground/70 hover:bg-foreground/[0.06] transition-colors text-sm font-bold"
         >
-          <option value="ALL">All Departments ({allEmployees.length})</option>
-          {departments.map(d => (
-            <option key={d.id} value={d.id}>
-              {d.name} ({countByDept.get(d.id) ?? 0})
-            </option>
-          ))}
-        </select>
+          ‹
+        </button>
+
+        <div className="flex items-center gap-2">
+          {windowMonths.map(({ year: y, month: m }) => {
+            const isSelected = y === selYear && m === selMonth
+            return (
+              <button
+                key={`${y}-${m}`}
+                onClick={() => selectMonth(y, m)}
+                className={`px-3 py-1.5 rounded-lg text-[13px] font-semibold transition-all ${
+                  isSelected
+                    ? 'bg-foreground text-background'
+                    : 'text-foreground/50 hover:text-foreground/80'
+                }`}
+              >
+                {MONTHS[m - 1]} {y}
+              </button>
+            )
+          })}
+        </div>
+
+        <button
+          onClick={() => shiftWindow(1)}
+          className="w-7 h-7 flex items-center justify-center rounded text-foreground/40 hover:text-foreground/70 hover:bg-foreground/[0.06] transition-colors text-sm font-bold"
+        >
+          ›
+        </button>
       </div>
 
-      {/* Search + count */}
-      <div className="flex items-center gap-3">
+      {/* ── By dept / All depts toggle ── */}
+      <div className="px-8 pt-4">
+        <div className="flex items-center gap-0.5 bg-card border border-foreground/[0.08] rounded-lg p-0.5 w-fit">
+          <button
+            onClick={() => setByDept(true)}
+            className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-all ${
+              byDept ? 'bg-foreground text-background' : 'text-foreground/50 hover:text-foreground'
+            }`}
+          >
+            By department
+          </button>
+          <button
+            onClick={() => setByDept(false)}
+            className={`px-3 py-1.5 rounded-md text-[12px] font-semibold transition-all ${
+              !byDept ? 'bg-foreground text-background' : 'text-foreground/50 hover:text-foreground'
+            }`}
+          >
+            All departments
+          </button>
+        </div>
+      </div>
+
+      {/* ── Dept tabs (shown only in byDept mode) ── */}
+      {byDept && (
+        <div className="px-8 pt-4">
+          <div className="flex items-center gap-1 overflow-x-auto pb-1">
+            {departments.map(dept => {
+              const isActive = dept.id === activeDeptId
+              const hasDraft = rosters.some(r => r.departmentId === dept.id && r.status === 'DRAFT')
+              const count = countByDept.get(dept.id) ?? 0
+              return (
+                <button
+                  key={dept.id}
+                  onClick={() => setActiveDeptId(dept.id)}
+                  className={`flex-shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-lg text-[12px] font-semibold transition-all ${
+                    isActive
+                      ? 'bg-foreground text-background'
+                      : 'text-foreground/50 hover:text-foreground hover:bg-foreground/[0.06]'
+                  }`}
+                >
+                  {dept.name}
+                  <span className={`text-[11px] ${isActive ? 'text-background/60' : 'text-foreground/35'}`}>
+                    {count}
+                  </span>
+                  {!isActive && hasDraft && (
+                    <span className={`text-[10px] ${isActive ? 'text-background/50' : 'text-foreground/40'}`}>↓</span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Search ── */}
+      <div className="px-8 pt-4 flex items-center gap-3">
         <div className="relative">
-          <svg className="absolute left-3 top-2.5 w-4 h-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg className="absolute left-3 top-2.5 w-4 h-4 text-foreground/35" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
           <input
             type="text"
             value={search}
             onChange={e => setSearch(e.target.value)}
-            placeholder={`Search ${activeDeptId === 'ALL' ? 'all staff' : (deptById.get(activeDeptId)?.name ?? '')}…`}
-            className="pl-9 pr-4 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring w-64"
+            placeholder="Search by name or ID..."
+            className="pl-9 pr-4 py-2 rounded-lg border border-foreground/[0.1] bg-card text-[13px] text-foreground placeholder:text-foreground/35 focus:outline-none focus:ring-1 focus:ring-foreground/20 w-56"
           />
         </div>
-        <span className="text-sm text-muted-foreground">{visibleEmployees.length} employees</span>
+        <span className="text-[13px] text-foreground/40">
+          {rosterEmployees.length} staff
+        </span>
       </div>
 
-      {/* Roster grid */}
-      {loading ? (
-        <div className="py-20 text-center text-muted-foreground">Loading…</div>
-      ) : visibleEmployees.length === 0 ? (
-        <div className="py-20 text-center text-muted-foreground">No employees match your search.</div>
-      ) : (
-        <div className="space-y-6">
-          {Array.from(employeesByDept.entries()).map(([deptId, emps]) => {
-            const dept = deptById.get(deptId)
+      {/* ── Roster grid ── */}
+      <div className="px-8 pt-4 pb-12 space-y-5">
+        {loading ? (
+          <div className="py-20 text-center text-foreground/35 text-sm">Loading…</div>
+        ) : tableGroups.length === 0 ? (
+          <div className="py-20 text-center text-foreground/35 text-sm bg-card border border-foreground/[0.08] rounded-xl">
+            No employees found
+          </div>
+        ) : (
+          tableGroups.map(({ deptId, emps }) => {
+            const dept   = deptById.get(deptId)
             const roster = rosters.find(r => r.departmentId === deptId)
-            const filteredEmps = search.trim()
-              ? emps
-              : emps
 
             return (
-              <div key={deptId} className="rounded-xl border border-border overflow-hidden">
+              <div key={deptId} className="bg-card border border-foreground/[0.08] rounded-xl overflow-hidden">
                 {/* Section header */}
-                <div className="flex items-center justify-between px-4 py-3 bg-muted/40 border-b border-border">
-                  <div className="flex items-center gap-3">
-                    <div className="w-1 h-5 rounded-full bg-foreground/30" />
-                    <span className="font-semibold">{dept?.name ?? deptId}</span>
-                    <span className="text-xs text-muted-foreground">{MONTHS[month-1]} {year}</span>
-                    <span className="text-xs text-muted-foreground">·</span>
-                    <span className="text-xs text-muted-foreground">{weekLabel}</span>
-                    <span className="text-xs text-muted-foreground">·</span>
-                    <span className="text-xs text-muted-foreground">{emps.length} staff</span>
+                <div className="flex items-center justify-between px-4 py-3 border-b border-foreground/[0.06]">
+                  <div className="flex items-center gap-2">
+                    <span className="text-[13px] font-bold text-foreground">{dept?.name ?? deptId}</span>
+                    <span className="text-[12px] text-foreground/40">
+                      {MONTHS[selMonth - 1]} {selYear} · {days.length} days
+                    </span>
                   </div>
                   <div className="flex items-center gap-2">
                     {roster && (
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
                         roster.status === 'PUBLISHED' ? 'bg-green-100 text-green-700'
-                        : roster.status === 'LOCKED' ? 'bg-red-100 text-red-700'
-                        : 'bg-yellow-100 text-yellow-700'
+                        : roster.status === 'LOCKED'   ? 'bg-red-100 text-red-700'
+                        : 'bg-amber-100 text-amber-700'
                       }`}>
                         {roster.status}
                       </span>
                     )}
-                    {roster?.status === 'DRAFT' && (
+                    {editMode && roster?.status === 'DRAFT' && (
                       <button
                         onClick={() => handlePublish(deptId)}
                         disabled={publishing}
-                        className="px-3 py-1 rounded text-xs font-medium bg-foreground text-background hover:opacity-80 transition-opacity"
+                        className="px-3 py-1 rounded text-[11px] font-semibold bg-foreground text-background hover:opacity-80 transition-opacity"
                       >
                         Publish
                       </button>
@@ -432,93 +469,113 @@ export default function RosterPage() {
 
                 {/* Table */}
                 <div className="overflow-x-auto">
-                  <table className="w-full text-xs border-collapse">
+                  <table className="border-collapse" style={{ minWidth: `${180 + days.length * 34}px` }}>
                     <thead>
-                      <tr className="bg-muted/20">
-                        <th className="sticky left-0 bg-card px-4 py-2 text-left font-semibold min-w-[220px] border-r border-border text-foreground">NAME</th>
-                        {weekDays.map(d => {
+                      <tr>
+                        {/* Sticky staff column header */}
+                        <th
+                          className="sticky left-0 z-10 bg-card px-4 py-2 text-left text-[10px] font-bold tracking-wider uppercase text-foreground/40 border-r border-foreground/[0.06]"
+                          style={{ minWidth: 180, width: 180 }}
+                        >
+                          Staff
+                        </th>
+                        {days.map(d => {
+                          const dow   = d.getDay()
+                          const isWkd = dow === 0 || dow === 6
                           const isToday = d.toDateString() === new Date().toDateString()
-                          const dow = DOW_LABELS[(d.getDay() + 6) % 7]
                           return (
-                            <th key={d.toISOString()} className={`px-2 py-2 text-center min-w-[80px] ${isToday ? 'bg-blue-50 text-blue-700' : ''}`}>
-                              <div className="font-semibold">{dow}</div>
-                              <div className={`text-[10px] ${isToday ? 'font-bold' : 'text-muted-foreground font-normal'}`}>{d.getDate()}</div>
+                            <th
+                              key={d.getDate()}
+                              className={`py-2 text-center border-r border-foreground/[0.04] last:border-0 ${
+                                isWkd    ? 'bg-foreground/[0.02]'   : ''
+                              } ${isToday ? 'bg-blue-50/60' : ''}`}
+                              style={{ minWidth: 32, width: 32, maxWidth: 32 }}
+                            >
+                              <div className={`text-[9px] font-semibold ${isWkd ? 'text-foreground/30' : 'text-foreground/40'} ${isToday ? 'text-blue-500' : ''}`}>
+                                {DOW_LETTER[dow]}
+                              </div>
+                              <div className={`text-[10px] font-bold ${isWkd ? 'text-foreground/30' : 'text-foreground/60'} ${isToday ? 'text-blue-600' : ''}`}>
+                                {d.getDate()}
+                              </div>
                             </th>
                           )
                         })}
                       </tr>
                     </thead>
                     <tbody>
-                      {/* Separator before LOCUM section */}
-                      {filteredEmps.some(e => e.employeeType === 'LOCUM') && (
-                        <tr className="border-t border-foreground/[0.06]">
-                          <td colSpan={weekDays.length + 1} className="px-4 py-1.5 bg-blue-500/5">
-                            <span className="text-[10px] font-bold tracking-widest text-blue-400/60 uppercase">Locum Staff</span>
-                          </td>
-                        </tr>
-                      )}
-                      {filteredEmps.map((emp, idx) => (
-                        <tr key={emp.id} className={`border-t border-foreground/[0.06] hover:bg-foreground/[0.02] ${emp.employeeType === 'LOCUM' ? 'bg-blue-500/[0.04]' : ''}`}>
-                          <td className="sticky left-0 bg-card px-4 py-1.5 border-r border-border min-w-[220px] max-w-[220px] group/row">
+                      {emps.map(emp => (
+                        <tr
+                          key={emp.id}
+                          className={`border-t border-foreground/[0.05] hover:bg-foreground/[0.015] ${
+                            emp.employeeType === 'LOCUM' ? 'bg-blue-500/[0.02]' : ''
+                          }`}
+                        >
+                          {/* Sticky name column */}
+                          <td
+                            className="sticky left-0 z-10 bg-card border-r border-foreground/[0.06] px-3 py-2 group/row"
+                            style={{ minWidth: 180, width: 180 }}
+                          >
                             <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-foreground/10 flex items-center justify-center text-[10px] font-bold text-foreground/70 flex-shrink-0">
+                              <div
+                                className="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                                style={{ background: '#2B3649', color: '#C8D0DC' }}
+                              >
                                 {emp.name.split(' ').map((w: string) => w[0]).slice(0, 2).join('')}
                               </div>
                               <button
-                                className="min-w-0 flex-1 text-left hover:opacity-80 transition-opacity"
                                 onClick={() => setDetailEmployee({ ...emp, department: deptById.get(emp.departmentId) })}
+                                className="min-w-0 flex-1 text-left"
                               >
-                                <div className="flex items-center gap-1.5">
-                                  <p className="text-xs font-semibold text-foreground truncate">{emp.name}</p>
-                                  {emp.employeeType === 'LOCUM' && (
-                                    <span className="flex-shrink-0 px-1 py-0.5 rounded text-[8px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/30">LOCUM</span>
-                                  )}
-                                </div>
-                                <p className="text-[10px] text-foreground/40 truncate">{emp.staffId}</p>
+                                <p className="text-[11px] font-bold text-foreground truncate uppercase tracking-wide">
+                                  {emp.name}
+                                </p>
+                                <p className="text-[10px] text-foreground/35 truncate">{emp.staffId}</p>
                               </button>
-                              {/* Remove button — shows on row hover */}
-                              <button
-                                onClick={() => setRemoveConfirm({ id: emp.id, name: emp.name })}
-                                className="opacity-0 group-hover/row:opacity-100 p-1 rounded hover:bg-red-500/20 text-foreground/30 hover:text-red-500 transition-all flex-shrink-0"
-                                title="Remove employee"
-                              >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
+                              {editMode && (
+                                <button
+                                  onClick={() => setRemoveConfirm({ id: emp.id, name: emp.name })}
+                                  className="opacity-0 group-hover/row:opacity-100 p-1 rounded hover:bg-red-500/10 text-foreground/25 hover:text-red-500 transition-all flex-shrink-0"
+                                >
+                                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                  </svg>
+                                </button>
+                              )}
                             </div>
                           </td>
-                          {weekDays.map(d => {
-                            const dateKey = isoDate(year, month, d.getDate())
-                            const slot = slotMap.get(emp.id)?.get(dateKey)
+
+                          {/* Day cells */}
+                          {days.map(d => {
+                            const dateKey = isoDate(selYear, selMonth, d.getDate())
+                            const slot    = slotMap.get(emp.id)?.get(dateKey)
+                            const dow     = d.getDay()
+                            const isWkd   = dow === 0 || dow === 6
                             const isToday = d.toDateString() === new Date().toDateString()
-                            const colorClass = slot ? (SHIFT_COLORS[slot.shiftType] ?? 'bg-slate-100 text-slate-600') : ''
-                            const label = slot ? (SHIFT_LABELS[slot.shiftType] ?? slot.shiftType) : '—'
+                            const label   = slot ? (SHIFT_LABELS[slot.shiftType] ?? slot.shiftType) : ''
+
                             return (
-                              <td key={dateKey} className={`px-1 py-1 text-center ${isToday ? 'bg-blue-50/50' : ''}`}>
+                              <td
+                                key={dateKey}
+                                className={`border-r border-foreground/[0.04] last:border-0 text-center p-0 ${
+                                  isWkd   ? 'bg-foreground/[0.015]' : ''
+                                } ${isToday ? 'bg-blue-50/40' : ''}`}
+                                style={{ minWidth: 32, width: 32, maxWidth: 32 }}
+                              >
                                 <button
                                   onClick={() => handleSlotClick(
-                                    roster?.id ?? '',
-                                    slot?.id,
-                                    emp.id,
-                                    emp.name,
-                                    dateKey,
+                                    roster?.id ?? '', slot?.id,
+                                    emp.id, emp.name, dateKey,
                                     slot?.shiftType ?? null,
                                     deptById.get(emp.departmentId)?.code
                                   )}
-                                  className={`w-full min-h-[44px] rounded-lg text-xs font-bold transition-all hover:opacity-80 hover:scale-105 flex flex-col items-center justify-center px-1 ${
-                                    slot ? colorClass : 'text-foreground/20 hover:bg-foreground/5 hover:text-foreground/50'
-                                  } ${slot?.isEmergency ? 'ring-2 ring-red-500' : ''}`}
-                                  title={slot ? `${slot.shiftType}${SHIFT_TIMES[slot.shiftType] ? ` · ${SHIFT_TIMES[slot.shiftType].start}–${SHIFT_TIMES[slot.shiftType].end}` : ''}` : 'Click to assign shift'}
+                                  disabled={!editMode}
+                                  className={`w-full h-8 flex items-center justify-center text-[10px] font-bold transition-all ${
+                                    label
+                                      ? 'text-foreground/70 hover:bg-foreground/[0.05]'
+                                      : 'text-foreground/15 hover:text-foreground/30 hover:bg-foreground/[0.03]'
+                                  } ${editMode ? 'cursor-pointer' : 'cursor-default'}`}
                                 >
-                                  {slot ? (
-                                    <>
-                                      <span className="font-black text-sm leading-none">{label}</span>
-                                      <span className="text-[9px] opacity-80 leading-none mt-0.5 capitalize">{slot.shiftType.replace(/_/g,' ').toLowerCase()}</span>
-                                    </>
-                                  ) : (
-                                    <span className="text-[10px]">Off</span>
-                                  )}
+                                  {label || ''}
                                 </button>
                               </td>
                             )
@@ -530,27 +587,17 @@ export default function RosterPage() {
                 </div>
               </div>
             )
-          })}
-        </div>
-      )}
+          })
+        )}
+      </div>
 
-      {/* Remove employee confirmation */}
+      {/* ── Remove confirm ── */}
       {removeConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
           <div className="bg-card border border-foreground/10 rounded-2xl p-6 max-w-sm w-full mx-4 shadow-2xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center flex-shrink-0">
-                <svg className="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </div>
-              <div>
-                <p className="font-semibold text-foreground">Remove Employee?</p>
-                <p className="text-sm text-foreground/50 mt-0.5">This will deactivate their account</p>
-              </div>
-            </div>
-            <p className="text-sm text-foreground/70 mb-5">
-              <span className="text-foreground font-medium">{removeConfirm.name}</span> will be set to inactive. Their roster history is kept. You can reactivate them from the database later.
+            <p className="font-semibold text-foreground mb-1">Remove Employee?</p>
+            <p className="text-sm text-foreground/50 mb-5">
+              <span className="text-foreground font-medium">{removeConfirm.name}</span> will be set to inactive.
             </p>
             <div className="flex gap-3">
               <button
@@ -561,7 +608,7 @@ export default function RosterPage() {
               </button>
               <button
                 onClick={() => handleRemoveEmployee(removeConfirm.id)}
-                className="flex-1 px-4 py-2 rounded-lg bg-red-500/20 border border-red-500/30 text-sm font-semibold text-red-400 hover:bg-red-500/30 transition-colors"
+                className="flex-1 px-4 py-2 rounded-lg bg-red-500/10 border border-red-500/20 text-sm font-semibold text-red-500 hover:bg-red-500/20 transition-colors"
               >
                 Remove
               </button>
@@ -570,7 +617,7 @@ export default function RosterPage() {
         </div>
       )}
 
-      {/* Shift modal */}
+      {/* ── Shift modal ── */}
       {modal && (
         <ShiftModal
           open
@@ -583,11 +630,11 @@ export default function RosterPage() {
         />
       )}
 
-      {/* Employee detail sheet */}
+      {/* ── Employee detail ── */}
       <EmployeeDetailSheet
         employee={detailEmployee}
-        month={month}
-        year={year}
+        month={selMonth}
+        year={selYear}
         onClose={() => setDetailEmployee(null)}
         onAttendanceOverride={fetchRosters}
       />

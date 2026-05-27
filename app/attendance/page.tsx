@@ -1,172 +1,138 @@
 'use client'
 
 import { useState, useEffect, useCallback, useMemo } from 'react'
+import { ChevronRight } from 'lucide-react'
 import { EmployeeDetailSheet } from '@/components/roster/EmployeeDetailSheet'
 
-// ── Types ─────────────────────────────────────────────────────────────────────
+// ── Types ──────────────────────────────────────────────────────────────────────
 
 interface Department { id: string; name: string; code: string }
 interface Employee {
   id: string; name: string; staffId: string; departmentId: string
   position: string; employeeType: string; status: string
-  expectedMonthlyHours?: number; department?: { name: string; code: string }
+  expectedMonthlyHours?: number
+  department?: { name: string; code: string }
 }
 interface AttRecord {
   id: string; employeeId: string; date: string; status: string
   clockIn?: string | null; clockOut?: string | null
-  totalHours?: number; lateMinutes?: number; isManualOverride?: boolean
-  employee?: { name: string; staffId: string; departmentId: string; department?: { name: string; code: string } }
+  totalHours?: number
 }
 
-type Filter = 'all' | 'missed_clock_in' | 'missed_clock_out' | 'missed_both' | 'overtime' | 'absent' | 'on_leave'
+type AttFilter = 'all' | 'missed_in' | 'missed_out' | 'missed_both' | 'overtime'
 
-// ── Helpers ───────────────────────────────────────────────────────────────────
+const MONTHS = [
+  'January','February','March','April','May','June',
+  'July','August','September','October','November','December',
+]
 
-function fmtTime(iso: string | null | undefined) {
-  if (!iso) return '—'
-  return new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' })
+// ── Status badge ───────────────────────────────────────────────────────────────
+
+function StatusBadge({ rec }: { rec: AttRecord | undefined }) {
+  if (!rec) return null
+  if (!rec.clockIn && !rec.clockOut)
+    return <span className="text-[11px] px-2 py-0.5 rounded border border-red-300 text-red-600 font-medium whitespace-nowrap">No clock-in</span>
+  if (!rec.clockIn)
+    return <span className="text-[11px] px-2 py-0.5 rounded border border-red-300 text-red-600 font-medium whitespace-nowrap">No clock-in</span>
+  if (!rec.clockOut)
+    return <span className="text-[11px] px-2 py-0.5 rounded border border-amber-300 text-amber-700 font-medium whitespace-nowrap">No clock-out</span>
+  return <span className="text-[11px] px-2 py-0.5 rounded border border-green-300 text-green-600 font-medium whitespace-nowrap">Present</span>
 }
 
-function lastSyncLabel(lastSync: string | null) {
-  if (!lastSync) return 'Never synced'
-  const diff = Math.floor((Date.now() - new Date(lastSync).getTime()) / 60000)
-  if (diff < 1) return 'Synced just now'
-  if (diff < 60) return `Last synced ${diff} min ago`
-  return `Last synced ${Math.floor(diff / 60)}h ago`
-}
+// ── Employee Row ───────────────────────────────────────────────────────────────
 
-// ── Status badge (Osiyo pattern) ──────────────────────────────────────────────
-
-function AttStatus({ rec }: { rec: AttRecord }) {
-  const noIn  = !rec.clockIn
-  const noOut = !rec.clockOut
-  const isOT  = (rec.totalHours ?? 0) > 9
-
-  if (rec.status === 'ABSENT')
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-600 border border-red-500/20">Absent</span>
-  if (rec.status === 'ON_LEAVE')
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-500/10 text-blue-600 border border-blue-500/20">On Leave</span>
-  if (noIn && noOut)
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-red-500/10 text-red-600 border border-red-500/20">⚠ Missed Both</span>
-  if (noIn)
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">No Clock-In</span>
-  if (noOut)
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-700 border border-amber-500/20">No Clock-Out</span>
-  if (isOT)
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-violet-500/10 text-violet-700 border border-violet-500/20">Overtime</span>
-  if (rec.status === 'LATE')
-    return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-orange-500/10 text-orange-700 border border-orange-500/20">Late</span>
-  return <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-green-500/10 text-green-600 border border-green-500/20">✓ Present</span>
-}
-
-// ── Employee row (Osiyo pattern adapted) ─────────────────────────────────────
-
-const SHIFT_BADGE: Record<string, string> = {
-  MORNING:        'bg-amber-500/15 text-amber-700',
-  AFTERNOON:      'bg-orange-500/15 text-orange-700',
-  DAY:            'bg-sky-500/15 text-sky-700',
-  PM_SHIFT:       'bg-purple-500/15 text-purple-700',
-  NIGHT:          'bg-indigo-500/15 text-indigo-700',
-  LATE:           'bg-rose-500/15 text-rose-700',
-  ON_CALL:        'bg-teal-500/15 text-teal-700',
-  OFF:            'bg-white/5 text-foreground/40',
-  ANNUAL_LEAVE:   'bg-green-500/15 text-green-300',
-  MATERNITY_LEAVE:'bg-pink-500/15 text-pink-700',
-  SICK_LEAVE:     'bg-red-500/15 text-red-600',
-}
-
-const SHIFT_SHORT: Record<string, string> = {
-  MORNING: 'MOR', AFTERNOON: 'AFT', DAY: 'DAY', PM_SHIFT: 'PMS',
-  NIGHT: 'NGT', LATE: 'LTE', ON_CALL: 'ONC', OFF: 'OFF',
-  ANNUAL_LEAVE: 'AL', MATERNITY_LEAVE: 'ML', SICK_LEAVE: 'SL',
-}
-
-function EmployeeRow({ emp, rec, scheduledShift, onClick }: { emp: Employee; rec: AttRecord | undefined; scheduledShift?: string; onClick: () => void }) {
-  const hours = rec ? Math.max(0, rec.totalHours ?? 0) : 0
+function EmployeeRow({
+  emp, missedCount, weekHrs, todayRec, onClick,
+}: {
+  emp: Employee
+  missedCount: number
+  weekHrs: number
+  todayRec: AttRecord | undefined
+  onClick: () => void
+}) {
+  const initials = emp.name.split(' ').map(w => w[0]).slice(0, 2).join('')
+  const expectedWeekHrs = Math.round((emp.expectedMonthlyHours ?? 180) / 4)
 
   return (
     <button
       onClick={onClick}
-      className="w-full bg-card rounded-xl border border-foreground/10 px-4 py-3 flex items-center justify-between gap-4 hover:bg-card/80 hover:border-foreground/15 transition-all text-left group"
+      className="w-full px-4 py-3.5 flex items-center gap-3 hover:bg-foreground/[0.015] transition-colors text-left group"
     >
-      {/* Avatar + name */}
-      <div className="flex items-center gap-3 min-w-0">
-        <div className="h-9 w-9 rounded-full bg-foreground/8 flex items-center justify-center text-xs font-bold text-foreground/60 flex-shrink-0 group-hover:bg-foreground/10 transition-colors">
-          {emp.name.split(' ').map(w => w[0]).slice(0, 2).join('')}
-        </div>
-        <div className="min-w-0">
-          <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-foreground truncate">{emp.name}</p>
-            {emp.employeeType === 'LOCUM' && (
-              <span className="flex-shrink-0 px-1 py-0.5 rounded text-[8px] font-bold bg-blue-500/20 text-blue-600 border border-blue-500/30">LOCUM</span>
-            )}
-          </div>
-          <p className="text-xs text-foreground/50 truncate">{emp.staffId} · {emp.position || emp.department?.name}</p>
-        </div>
+      {/* Avatar */}
+      <div className="h-9 w-9 rounded-lg flex items-center justify-center text-[12px] font-bold flex-shrink-0"
+        style={{ background: '#E8DEC8', color: '#5C4830' }}>
+        {initials}
       </div>
 
-      {/* Clock in/out + scheduled shift */}
-      <div className="hidden md:flex items-center gap-6 flex-shrink-0">
-        {scheduledShift && (
-          <div className="text-center min-w-[44px]">
-            <p className="text-[10px] text-foreground/40">Roster</p>
-            <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-bold ${SHIFT_BADGE[scheduledShift] ?? 'bg-white/5 text-foreground/40'}`}>
-              {SHIFT_SHORT[scheduledShift] ?? scheduledShift}
+      {/* Name + position */}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5 flex-wrap">
+          <span className="text-[13px] font-semibold text-foreground">{emp.name}</span>
+          {missedCount > 0 && (
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold"
+              style={{ background: '#FFF3CD', color: '#A0620D', border: '1px solid #F5D27A' }}>
+              {missedCount} missed
             </span>
-          </div>
-        )}
-        <div className="text-center min-w-[56px]">
-          <p className="text-[10px] text-foreground/40">Clock In</p>
-          <p className={`text-xs font-mono font-semibold ${rec?.clockIn ? 'text-green-600' : 'text-foreground/30'}`}>
-            {rec ? fmtTime(rec.clockIn) : '—'}
-          </p>
+          )}
         </div>
-        <div className="text-center min-w-[56px]">
-          <p className="text-[10px] text-foreground/40">Clock Out</p>
-          <p className={`text-xs font-mono font-semibold ${rec?.clockOut ? 'text-foreground/60' : rec ? 'text-red-600/60' : 'text-foreground/30'}`}>
-            {rec ? fmtTime(rec.clockOut) : '—'}
-          </p>
-        </div>
-        <div className="text-center min-w-[40px]">
-          <p className="text-[10px] text-foreground/40">Hours</p>
-          <p className={`text-xs font-semibold ${hours > 9 ? 'text-violet-400' : hours > 0 ? 'text-foreground/70' : 'text-foreground/30'}`}>
-            {hours > 0 ? `${hours.toFixed(1)}h` : '—'}
-          </p>
-        </div>
+        <p className="text-[11px] text-foreground/40 mt-0.5 truncate">
+          {emp.position} · {emp.staffId}
+        </p>
       </div>
 
-      {/* Status + arrow */}
-      <div className="flex items-center gap-2 flex-shrink-0">
-        {rec ? <AttStatus rec={rec} /> : <span className="text-[10px] text-foreground/30">No record</span>}
-        <svg className="w-3.5 h-3.5 text-foreground/30 group-hover:text-foreground/50 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
+      {/* Status + week hrs + chevron */}
+      <div className="flex items-center gap-3 flex-shrink-0">
+        <StatusBadge rec={todayRec} />
+
+        <div className="text-right min-w-[72px]">
+          <p className="text-[9px] font-bold tracking-[0.12em] uppercase text-foreground/35">Week HRS</p>
+          <p className="text-[13px] font-bold tabular-nums leading-tight">
+            <span className={weekHrs > expectedWeekHrs * 1.05 ? 'text-amber-600' : 'text-foreground'}>
+              {weekHrs.toFixed(1)}
+            </span>
+            <span className="text-foreground/30 font-normal text-[11px]"> / {expectedWeekHrs}</span>
+          </p>
+        </div>
+
+        <ChevronRight className="w-4 h-4 text-foreground/20 group-hover:text-foreground/40 transition-colors" />
       </div>
     </button>
   )
 }
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
+// ── Main Page ──────────────────────────────────────────────────────────────────
 
 export default function AttendancePage() {
   const now = new Date()
-  const [date, setDate] = useState(now.toISOString().slice(0, 10))
+  const today = now.toISOString().slice(0, 10)
+
+  const [month, setMonth] = useState(now.getMonth() + 1)
+  const [year,  setYear]  = useState(now.getFullYear())
+
   const [departments, setDepartments] = useState<Department[]>([])
-  const [employees, setEmployees] = useState<Employee[]>([])
-  const [records, setRecords] = useState<AttRecord[]>([])
-  const [lastSync, setLastSync] = useState<string | null>(null)
-  const [syncing, setSyncing] = useState(false)
+  const [employees,   setEmployees]   = useState<Employee[]>([])
+  const [records,     setRecords]     = useState<AttRecord[]>([])
+
   const [activeDept, setActiveDept] = useState<string>('all')
-  const [filter, setFilter] = useState<Filter>('all')
-  const [search, setSearch] = useState('')
-  const [detailEmp, setDetailEmp] = useState<Employee | null>(null)
-  const [visibleCount, setVisibleCount] = useState(20)
-  const [rosterSlots, setRosterSlots] = useState<Record<string, string>>({}) // employeeId → shiftType
+  const [filter,     setFilter]     = useState<AttFilter>('all')
+  const [search,     setSearch]     = useState('')
+  const [detailEmp,  setDetailEmp]  = useState<Employee | null>(null)
 
-  const month = parseInt(date.slice(5, 7))
-  const year  = parseInt(date.slice(0, 4))
+  const daysInMonth = new Date(year, month, 0).getDate()
+  const monthStart  = `${year}-${String(month).padStart(2,'0')}-01`
+  const monthEnd    = `${year}-${String(month).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`
 
-  // Initial load
+  // ── 7-day window ending today (or last day of selected month) ─────────────
+  const windowEnd   = month === now.getMonth() + 1 && year === now.getFullYear()
+    ? today
+    : monthEnd
+  const windowStart7 = (() => {
+    const d = new Date(windowEnd + 'T12:00:00')
+    d.setDate(d.getDate() - 6)
+    return d.toISOString().slice(0, 10)
+  })()
+
+  // ── Load departments + employees once ─────────────────────────────────────
   useEffect(() => {
     Promise.all([
       fetch('/api/departments').then(r => r.json()),
@@ -177,242 +143,280 @@ export default function AttendancePage() {
     })
   }, [])
 
-  const fetchAttendance = useCallback(async () => {
-    const res = await fetch(`/api/attendance?date=${date}`)
+  // ── Load monthly attendance records ───────────────────────────────────────
+  const fetchRecords = useCallback(async () => {
+    const res = await fetch(`/api/attendance?from=${monthStart}&to=${monthEnd}&limit=10000`)
     if (!res.ok) return
     const data = await res.json()
     setRecords(data.attendance ?? [])
-    if (data.lastSync) setLastSync(data.lastSync.syncedAt)
-  }, [date])
+  }, [monthStart, monthEnd])
 
-  useEffect(() => { fetchAttendance() }, [fetchAttendance])
+  useEffect(() => { fetchRecords() }, [fetchRecords])
 
-  // Fetch roster slots for the current date to show scheduled shifts
-  useEffect(() => {
-    fetch(`/api/roster?month=${month}&year=${year}`)
-      .then(r => r.ok ? r.json() : [])
-      .then((rosters: { slots: { employeeId: string; date: string; shiftType: string }[] }[]) => {
-        const map: Record<string, string> = {}
-        for (const roster of rosters) {
-          for (const slot of roster.slots) {
-            if (slot.date.slice(0, 10) === date) {
-              map[slot.employeeId] = slot.shiftType
-            }
-          }
-        }
-        setRosterSlots(map)
-      })
-      .catch(() => {})
-  }, [date, month, year])
-
-  async function handleSync() {
-    setSyncing(true)
-    await fetch('/api/attendance/sync', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({}),
-    })
-    setSyncing(false)
-    fetchAttendance()
-  }
-
-  // Record lookup by employeeId
-  const recByEmp = useMemo(() => new Map(records.map(r => [r.employeeId, r])), [records])
+  // ── Lookups ───────────────────────────────────────────────────────────────
   const deptById = useMemo(() => new Map(departments.map(d => [d.id, d])), [departments])
 
-  // Stats (Osiyo's StatsCards)
+  const todayRecByEmp = useMemo(() => {
+    const m = new Map<string, AttRecord>()
+    for (const r of records) {
+      if (r.date?.slice(0, 10) === today) m.set(r.employeeId, r)
+    }
+    return m
+  }, [records, today])
+
+  // ── Per-employee stats ─────────────────────────────────────────────────────
+  const empStats = useMemo(() => {
+    const m = new Map<string, { missedCount: number; weekHrs: number }>()
+
+    for (const emp of employees) {
+      const recs = records.filter(r => r.employeeId === emp.id)
+
+      // Missed: past days (before today) with no clock-in and not on leave
+      const missedCount = recs.filter(r => {
+        const d = r.date?.slice(0, 10) ?? ''
+        return d < today && !r.clockIn && r.status !== 'ON_LEAVE'
+      }).length
+
+      // Week hrs: last 7 days total hours
+      const weekRecs = recs.filter(r => {
+        const d = r.date?.slice(0, 10) ?? ''
+        return d >= windowStart7 && d <= windowEnd
+      })
+      const weekHrs = weekRecs.reduce((s, r) => s + Math.max(0, r.totalHours ?? 0), 0)
+
+      m.set(emp.id, { missedCount, weekHrs })
+    }
+    return m
+  }, [employees, records, today, windowStart7, windowEnd])
+
+  // ── Department tab counts ─────────────────────────────────────────────────
+  const deptCounts = useMemo(() => {
+    const m = new Map<string, number>()
+    for (const e of employees) m.set(e.departmentId, (m.get(e.departmentId) ?? 0) + 1)
+    return m
+  }, [employees])
+
+  const deptTabs = useMemo(() => {
+    const seen = new Set<string>()
+    const tabs: { id: string; name: string; count: number }[] = []
+    for (const e of employees) {
+      if (!seen.has(e.departmentId)) {
+        seen.add(e.departmentId)
+        const dept = deptById.get(e.departmentId)
+        if (dept) tabs.push({ id: e.departmentId, name: dept.name, count: deptCounts.get(e.departmentId) ?? 0 })
+      }
+    }
+    return tabs.sort((a, b) => a.name.localeCompare(b.name))
+  }, [employees, deptById, deptCounts])
+
+  // ── Aggregate stats ───────────────────────────────────────────────────────
+  const deptEmps = useMemo(() =>
+    activeDept === 'all' ? employees : employees.filter(e => e.departmentId === activeDept),
+    [employees, activeDept])
+
   const stats = useMemo(() => {
-    const deptEmps = activeDept === 'all' ? employees : employees.filter(e => e.departmentId === activeDept)
-    const deptRecs = deptEmps.map(e => recByEmp.get(e.id)).filter(Boolean) as AttRecord[]
-    const missedIn  = deptRecs.filter(r => !r.clockIn && r.status !== 'ON_LEAVE').length
-    const missedOut = deptRecs.filter(r => r.clockIn && !r.clockOut).length
-    const totalHrs  = deptRecs.reduce((s, r) => s + Math.max(0, r.totalHours ?? 0), 0)
-    const avgHrs    = deptRecs.length > 0 ? totalHrs / deptRecs.length : 0
-    return { total: deptEmps.length, missedIn, missedOut, avgHrs }
-  }, [employees, records, activeDept, recByEmp])
+    const totalMissedIn  = deptEmps.reduce((s, e) => s + (empStats.get(e.id)?.missedCount ?? 0), 0)
+    const totalMissedOut = records.filter(r => {
+      const emp = deptEmps.find(e => e.id === r.employeeId)
+      return emp && r.clockIn && !r.clockOut && r.date?.slice(0,10) < today
+    }).length
+    const weekHrsArr = deptEmps.map(e => empStats.get(e.id)?.weekHrs ?? 0).filter(h => h > 0)
+    const avgWeekHrs = weekHrsArr.length > 0
+      ? weekHrsArr.reduce((a, b) => a + b, 0) / weekHrsArr.length
+      : 0
+    return { total: deptEmps.length, missedIn: totalMissedIn, missedOut: totalMissedOut, avgWeekHrs }
+  }, [deptEmps, empStats, records, today])
 
-  // Filtered employees
+  // ── Filtered employees ────────────────────────────────────────────────────
   const filtered = useMemo(() => {
-    let emps = activeDept === 'all' ? employees : employees.filter(e => e.departmentId === activeDept)
-
+    let emps = deptEmps
     if (search.trim()) {
       const q = search.toLowerCase()
-      emps = emps.filter(e => e.name.toLowerCase().includes(q) || e.staffId.toLowerCase().includes(q))
+      emps = emps.filter(e =>
+        e.name.toLowerCase().includes(q) ||
+        e.staffId.toLowerCase().includes(q) ||
+        (e.position ?? '').toLowerCase().includes(q)
+      )
     }
-
     emps = emps.filter(e => {
-      const r = recByEmp.get(e.id)
+      const s = empStats.get(e.id) ?? { missedCount: 0, weekHrs: 0 }
+      const todayRec = todayRecByEmp.get(e.id)
       switch (filter) {
-        case 'missed_clock_in':  return r && !r.clockIn && r.status !== 'ON_LEAVE'
-        case 'missed_clock_out': return r && r.clockIn && !r.clockOut
-        case 'missed_both':      return r && !r.clockIn && !r.clockOut && r.status !== 'ON_LEAVE'
-        case 'overtime':         return r && (r.totalHours ?? 0) > 9
-        case 'absent':           return r?.status === 'ABSENT' || !r
-        case 'on_leave':         return r?.status === 'ON_LEAVE'
+        case 'missed_in':   return s.missedCount > 0
+        case 'missed_out':  return todayRec?.clockIn && !todayRec?.clockOut
+        case 'missed_both': return s.missedCount > 0 && (todayRec?.clockIn && !todayRec?.clockOut)
+        case 'overtime':    return s.weekHrs > 45
         default: return true
       }
     })
-
     return emps
-  }, [employees, activeDept, filter, search, recByEmp])
+  }, [deptEmps, search, filter, empStats, todayRecByEmp])
 
-  const FILTERS: { value: Filter; label: string; color: string }[] = [
-    { value: 'all',            label: 'All',            color: '' },
-    { value: 'missed_clock_in',label: 'Missed Clock-In',color: 'amber' },
-    { value: 'missed_clock_out',label:'Missed Clock-Out',color: 'amber' },
-    { value: 'missed_both',    label: 'Missed Both',    color: 'red' },
-    { value: 'overtime',       label: 'Overtime',       color: 'violet' },
-    { value: 'absent',         label: 'Absent',         color: 'red' },
-    { value: 'on_leave',       label: 'On Leave',       color: 'blue' },
+  const selectedDeptName = activeDept === 'all'
+    ? 'All departments'
+    : (deptById.get(activeDept)?.name ?? '')
+
+  const FILTERS: { value: AttFilter; label: string }[] = [
+    { value: 'all',         label: 'All'        },
+    { value: 'missed_in',   label: 'Missed in'  },
+    { value: 'missed_out',  label: 'Missed out' },
+    { value: 'missed_both', label: 'Missed both'},
+    { value: 'overtime',    label: 'Overtime'   },
   ]
 
   return (
-    <div className="p-6 max-w-[1400px] mx-auto space-y-5">
+    <div className="min-h-screen bg-background">
 
-      {/* Header */}
-      <div className="flex items-center justify-between">
+      {/* ── Header ── */}
+      <div className="px-8 pt-8 pb-0 flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Attendance</h1>
-          <p className="text-sm text-foreground/50 mt-0.5">{lastSyncLabel(lastSync)}</p>
+          <p className="text-[10px] font-semibold tracking-[0.18em] uppercase text-foreground/40 mb-1.5">
+            Attendance
+          </p>
+          <h1 className="text-[2.25rem] font-black text-foreground tracking-tight leading-none">
+            {selectedDeptName}
+          </h1>
+          <p className="text-sm text-foreground/45 mt-2">
+            {MONTHS[month - 1]} {year} · {deptEmps.length} people
+          </p>
         </div>
-        <div className="flex items-center gap-2">
-          <input
-            type="date"
-            value={date}
-            onChange={e => { setDate(e.target.value); setVisibleCount(20) }}
-            className="rounded-lg border border-foreground/15 bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40"
-          />
-          <button
-            onClick={handleSync}
-            disabled={syncing}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-500 text-black text-sm font-semibold hover:bg-amber-400 disabled:opacity-50 transition-colors"
+
+        {/* Department dropdown */}
+        <div className="relative mt-1">
+          <select
+            value={activeDept}
+            onChange={e => setActiveDept(e.target.value)}
+            className="appearance-none rounded-lg border border-foreground/[0.12] bg-card px-3 py-2 pr-8 text-[13px] text-foreground focus:outline-none min-w-[180px] cursor-pointer"
           >
-            <svg className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            {syncing ? 'Syncing…' : 'Sync Now'}
-          </button>
+            <option value="all">All departments</option>
+            {departments.map(d => (
+              <option key={d.id} value={d.id}>{d.name}</option>
+            ))}
+          </select>
+          <svg className="absolute right-2.5 top-2.5 w-4 h-4 text-foreground/40 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          </svg>
         </div>
       </div>
 
-      {/* Stats cards (Osiyo's StatsCards) */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      {/* ── Stat cards ── */}
+      <div className="px-8 pt-6 grid grid-cols-4 gap-4">
         {[
-          { label: 'Total Employees', value: stats.total,              icon: '👥', color: 'text-blue-300',   bg: 'bg-blue-500/10',   border: 'border-blue-500/20' },
-          { label: 'Missed Clock-In', value: stats.missedIn,           icon: '⚠',  color: 'text-amber-700',  bg: 'bg-amber-500/10',  border: 'border-amber-500/20' },
-          { label: 'Missed Clock-Out',value: stats.missedOut,          icon: '🕐', color: 'text-red-600',    bg: 'bg-red-500/10',    border: 'border-red-500/20' },
-          { label: 'Avg Hours/Day',   value: stats.avgHrs.toFixed(1),  icon: '📈', color: 'text-green-300',  bg: 'bg-green-500/10',  border: 'border-green-500/20' },
+          { label: 'Total staff',      value: stats.total,                  red: false },
+          { label: 'Missed clock-in',  value: stats.missedIn,               red: true  },
+          { label: 'Missed clock-out', value: stats.missedOut,              red: true  },
+          { label: 'Avg hours / week', value: stats.avgWeekHrs.toFixed(1),  red: false },
         ].map(s => (
-          <div key={s.label} className={`rounded-xl border ${s.border} ${s.bg} p-4 flex items-center gap-3`}>
-            <div className={`${s.bg} rounded-lg p-2 text-xl`}>{s.icon}</div>
-            <div>
-              <p className="text-xs text-foreground/50 font-medium">{s.label}</p>
-              <p className={`text-2xl font-bold tracking-tight ${s.color}`}>{s.value}</p>
-            </div>
+          <div key={s.label} className="bg-card border border-foreground/[0.08] rounded-xl px-5 py-5">
+            <p className={`text-[2.25rem] font-black tabular-nums leading-none ${s.red ? 'text-[#BC0705]' : 'text-foreground'}`}>
+              {s.value}
+            </p>
+            <p className="text-[12px] text-foreground/45 mt-1.5">{s.label}</p>
           </div>
         ))}
       </div>
 
-      {/* Department dropdown */}
-      <select
-        value={activeDept}
-        onChange={e => { setActiveDept(e.target.value); setVisibleCount(20) }}
-        className="rounded-lg border border-foreground/15 bg-card px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500/40 min-w-[200px]"
-      >
-        <option value="all">All Departments · {employees.length}</option>
-        {departments.map(d => {
-          const count = employees.filter(e => e.departmentId === d.id).length
-          if (count === 0) return null
-          return <option key={d.id} value={d.id}>{d.name} · {count}</option>
-        })}
-      </select>
+      {/* ── Department tabs ── */}
+      <div className="px-8 pt-6">
+        <div className="flex items-center gap-1 overflow-x-auto pb-1">
+          <button
+            onClick={() => setActiveDept('all')}
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
+              activeDept === 'all'
+                ? 'bg-foreground text-background'
+                : 'text-foreground/50 hover:text-foreground hover:bg-foreground/[0.06]'
+            }`}
+          >
+            All
+            <span className={`text-[11px] ${activeDept === 'all' ? 'text-background/60' : 'text-foreground/30'}`}>
+              {employees.length}
+            </span>
+          </button>
 
-      {/* Attendance filters (Osiyo's AttendanceFilters) */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <svg className="w-4 h-4 text-foreground/40 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-        </svg>
-        {FILTERS.map(f => {
-          const active = filter === f.value
-          const colorMap: Record<string, string> = {
-            amber:  active ? 'bg-amber-500/15 text-amber-700 border-amber-500/30' : 'border-foreground/15 text-foreground/50 hover:border-amber-500/20 hover:text-amber-700/70',
-            red:    active ? 'bg-red-500/15 text-red-600 border-red-500/30' : 'border-foreground/15 text-foreground/50 hover:border-red-500/20 hover:text-red-600/70',
-            violet: active ? 'bg-violet-500/15 text-violet-700 border-violet-500/30' : 'border-foreground/15 text-foreground/50 hover:border-violet-500/20 hover:text-violet-700/70',
-            blue:   active ? 'bg-blue-500/15 text-blue-300 border-blue-500/30' : 'border-foreground/15 text-foreground/50 hover:border-blue-500/20 hover:text-blue-300/70',
-            '':     active ? 'bg-foreground text-background border-foreground' : 'border-foreground/15 text-foreground/50 hover:border-foreground/20 hover:text-foreground/70',
-          }
-          return (
+          {deptTabs.map(tab => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveDept(tab.id)}
+              className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-semibold transition-all ${
+                activeDept === tab.id
+                  ? 'bg-foreground text-background'
+                  : 'text-foreground/50 hover:text-foreground hover:bg-foreground/[0.06]'
+              }`}
+            >
+              {tab.name}
+              <span className={`text-[11px] ${activeDept === tab.id ? 'text-background/60' : 'text-foreground/30'}`}>
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Search + filter pills ── */}
+      <div className="px-8 pt-4 flex items-center gap-3">
+        <div className="relative flex-1 max-w-[420px]">
+          <svg className="absolute left-3 top-2.5 w-4 h-4 text-foreground/35" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <input
+            type="text"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search by name, code or position..."
+            className="w-full pl-9 pr-4 py-2 rounded-lg border border-foreground/[0.1] bg-card text-[13px] text-foreground placeholder:text-foreground/35 focus:outline-none focus:ring-1 focus:ring-foreground/20"
+          />
+        </div>
+
+        <div className="flex items-center gap-0.5 bg-card border border-foreground/[0.08] rounded-lg p-0.5">
+          {FILTERS.map(f => (
             <button
               key={f.value}
-              onClick={() => { setFilter(f.value); setVisibleCount(20) }}
-              className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-all ${colorMap[f.color] ?? colorMap['']}`}
+              onClick={() => setFilter(f.value)}
+              className={`px-3 py-1.5 rounded-md text-[12px] font-medium transition-all ${
+                filter === f.value
+                  ? 'bg-foreground text-background'
+                  : 'text-foreground/50 hover:text-foreground'
+              }`}
             >
               {f.label}
             </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Employee list ── */}
+      <div className="px-8 pt-4 pb-12 space-y-2">
+        {filtered.map(emp => {
+          const s = empStats.get(emp.id) ?? { missedCount: 0, weekHrs: 0 }
+          return (
+            <div
+              key={emp.id}
+              className="bg-card border border-foreground/[0.08] rounded-xl overflow-hidden"
+            >
+              <EmployeeRow
+                emp={{ ...emp, department: deptById.get(emp.departmentId) }}
+                missedCount={s.missedCount}
+                weekHrs={s.weekHrs}
+                todayRec={todayRecByEmp.get(emp.id)}
+                onClick={() => setDetailEmp({ ...emp, department: deptById.get(emp.departmentId) })}
+              />
+            </div>
           )
         })}
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <svg className="absolute left-3 top-2.5 w-4 h-4 text-foreground/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-        </svg>
-        <input
-          type="text"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
-          placeholder="Search by name or staff ID…"
-          className="w-full pl-9 pr-4 py-2 rounded-lg border border-foreground/15 bg-card text-sm text-foreground placeholder:text-foreground/40 focus:outline-none focus:ring-1 focus:ring-amber-500/40"
-        />
-      </div>
-
-      {/* Count */}
-      <p className="text-xs text-foreground/40">Showing {Math.min(visibleCount, filtered.length)} of {filtered.length} employees</p>
-
-      {/* Employee list (Osiyo's EmployeeList pattern) */}
-      <div className="space-y-2">
-        {filtered.slice(0, visibleCount).map(emp => (
-          <EmployeeRow
-            key={emp.id}
-            emp={{ ...emp, department: deptById.get(emp.departmentId) }}
-            rec={recByEmp.get(emp.id)}
-            scheduledShift={rosterSlots[emp.id]}
-            onClick={() => setDetailEmp({ ...emp, department: deptById.get(emp.departmentId) })}
-          />
-        ))}
 
         {filtered.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-16 gap-3">
-            <div className="w-14 h-14 rounded-full bg-card flex items-center justify-center">
-              <svg className="w-7 h-7 text-foreground/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-            </div>
-            <p className="text-sm font-semibold text-foreground/50">No employees match your filters</p>
-            <p className="text-xs text-foreground/30">
-              {search ? `No results for "${search}"` : filter !== 'all' ? 'Try changing the filter' : 'No staff in this department'}
-            </p>
+          <div className="py-16 text-center text-foreground/35 text-sm bg-card border border-foreground/[0.08] rounded-xl">
+            No employees match your filters
           </div>
-        )}
-
-        {filtered.length > visibleCount && (
-          <button
-            onClick={() => setVisibleCount(v => v + 20)}
-            className="w-full py-3 rounded-xl border border-foreground/10 text-sm text-foreground/50 hover:text-foreground/70 hover:bg-card/60 transition-all"
-          >
-            Load more ({filtered.length - visibleCount} remaining)
-          </button>
         )}
       </div>
 
-      {/* Employee detail sheet */}
       <EmployeeDetailSheet
         employee={detailEmp}
         month={month}
         year={year}
         onClose={() => setDetailEmp(null)}
-        onAttendanceOverride={fetchAttendance}
+        onAttendanceOverride={fetchRecords}
       />
     </div>
   )

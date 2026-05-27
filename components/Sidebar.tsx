@@ -8,8 +8,9 @@ import {
   LogOut, Home, CalendarDays, Clock,
   BarChart3, BookOpen, Settings,
   PanelLeftClose, PanelLeftOpen, FileText,
+  ChevronDown, Download,
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 const NAV_DAILY = [
   { href: '/',           label: 'Home',        Icon: Home,         exact: true  },
@@ -25,9 +26,10 @@ const NAV_METRICS = [
 ]
 
 const NAV_TOOLS = [
-  { href: '/report',     label: 'CEO Report', Icon: FileText,  exact: true  },
-  { href: '/resources',  label: 'Resources',  Icon: BookOpen,  exact: false },
-  { href: '/settings',   label: 'Settings',   Icon: Settings,  exact: false },
+  { href: '/reports',   label: 'Reports',    Icon: Download,  exact: false },
+  { href: '/report',    label: 'CEO Report', Icon: FileText,  exact: true  },
+  { href: '/resources', label: 'Resources',  Icon: BookOpen,  exact: false },
+  { href: '/settings',  label: 'Settings',   Icon: Settings,  exact: false },
 ]
 
 function NavItem({
@@ -62,6 +64,66 @@ function SectionLabel({ children, collapsed }: { children: React.ReactNode; coll
   )
 }
 
+function MetricsNav({ path, collapsed }: { path: string; collapsed: boolean }) {
+  const isMetrics = path.startsWith('/metrics')
+  const [open, setOpen] = useState(isMetrics)
+
+  useEffect(() => {
+    if (isMetrics) setOpen(true)
+  }, [isMetrics])
+
+  if (collapsed) {
+    return (
+      <Link
+        href="/metrics/punctuality"
+        title="Metrics"
+        className={`relative flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] transition-colors
+          ${isMetrics
+            ? 'bg-white/10 text-white font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-r before:bg-[#DCAA05]'
+            : 'text-white/55 hover:text-white/85 hover:bg-white/[0.06]'
+          }`}
+      >
+        <BarChart3 className="h-4 w-4 shrink-0" />
+      </Link>
+    )
+  }
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className={`relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] transition-colors
+          ${isMetrics
+            ? 'bg-white/10 text-white font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-r before:bg-[#DCAA05]'
+            : 'text-white/55 hover:text-white/85 hover:bg-white/[0.06]'
+          }`}
+      >
+        <BarChart3 className="h-4 w-4 shrink-0" />
+        <span className="flex-1 text-left">Metrics</span>
+        <ChevronDown className={`h-3 w-3 flex-shrink-0 transition-transform duration-200 ${open ? 'rotate-180' : ''}`} />
+      </button>
+
+      {open && (
+        <div className="ml-4 mt-0.5 space-y-0.5 border-l border-white/[0.08] pl-3">
+          {NAV_METRICS.map(m => (
+            <Link
+              key={m.href}
+              href={m.href}
+              className={`block py-1 px-2 rounded text-[12px] transition-colors
+                ${path === m.href
+                  ? 'text-white font-medium'
+                  : 'text-white/40 hover:text-white/70'
+                }`}
+            >
+              {m.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </>
+  )
+}
+
 export function Sidebar() {
   const path   = usePathname()
   const router = useRouter()
@@ -80,7 +142,7 @@ export function Sidebar() {
     <aside
       className="flex-shrink-0 flex flex-col h-screen sticky top-0 border-r transition-all duration-200"
       style={{
-        width: collapsed ? '52px' : '160px',
+        width: collapsed ? '52px' : '200px',
         background: 'hsl(215 28% 16%)',
         borderColor: 'hsl(215 22% 22%)',
       }}
@@ -116,25 +178,11 @@ export function Sidebar() {
         ))}
 
         <SectionLabel collapsed={collapsed}>Metrics</SectionLabel>
-        {NAV_METRICS.map(m => (
-          <Link
-            key={m.href}
-            href={m.href}
-            title={collapsed ? m.label : undefined}
-            className={`relative flex items-center gap-2.5 px-2.5 py-1.5 rounded-md text-[13px] transition-colors
-              ${path === m.href
-                ? 'bg-white/10 text-white font-medium before:absolute before:left-0 before:top-1.5 before:bottom-1.5 before:w-[2px] before:rounded-r before:bg-[#DCAA05]'
-                : 'text-white/55 hover:text-white/85 hover:bg-white/[0.06]'
-              }`}
-          >
-            <BarChart3 className="h-4 w-4 shrink-0" />
-            {!collapsed && <span>{m.label}</span>}
-          </Link>
-        ))}
+        <MetricsNav path={path} collapsed={collapsed} />
 
         <SectionLabel collapsed={collapsed}>Tools</SectionLabel>
         {NAV_TOOLS.map(n => (
-          <NavItem key={n.label} href={n.href} label={n.label} Icon={n.Icon} path={path} collapsed={collapsed} />
+          <NavItem key={n.label} href={n.href} label={n.label} Icon={n.Icon} path={path} collapsed={collapsed} exact={n.exact} />
         ))}
       </nav>
 
