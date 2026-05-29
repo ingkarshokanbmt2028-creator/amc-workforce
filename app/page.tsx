@@ -153,7 +153,7 @@ export default function Dashboard() {
         <div className="flex items-center gap-2 mt-2">
           <button onClick={() => setDayOffset(d => d - 1)} className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/8 text-[#888] transition-colors font-bold">‹</button>
           <p className="text-sm text-[#888]">{isToday ? 'Today' : dayOffset === -1 ? 'Yesterday' : dateDisplay} · {dateDisplay}</p>
-          <button onClick={() => setDayOffset(d => Math.min(0, d + 1))} disabled={isToday} className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/8 text-[#888] transition-colors font-bold disabled:opacity-30">›</button>
+          <button onClick={() => setDayOffset(d => d + 1)} className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/8 text-[#888] transition-colors font-bold">›</button>
         </div>
 
         {/* Circle + stats */}
