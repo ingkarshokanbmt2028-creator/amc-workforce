@@ -121,18 +121,18 @@ export default function Dashboard() {
     <div className="min-h-screen bg-[#F5F5F0]">
       {/* Top bar */}
       <div className="px-8 pt-6 pb-0 flex items-center justify-between">
-        <p className="text-[14px] text-foreground/60">
-          {greeting()}, <span className="font-bold text-foreground">{user?.email?.split('@')[0] ?? 'Admin'}</span>.
+        <p className="text-[14px] text-[#555]">
+          {greeting()}, <span className="font-bold text-[#1A1A1A]">{user?.email?.split('@')[0] ?? 'Admin'}</span>.
         </p>
         <div className="flex items-center gap-3">
-          <span className="text-[12px] font-semibold tracking-[0.12em] text-foreground/40">{dateLabel}</span>
-          <Link href="/settings" className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors text-foreground/40">
+          <span className="text-[12px] font-semibold tracking-[0.12em] text-[#888]">{dateLabel}</span>
+          <Link href="/settings" className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors text-[#888]">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </Link>
-          <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors text-foreground/40">
+          <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors text-[#888]">
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
             </svg>
@@ -142,10 +142,10 @@ export default function Dashboard() {
 
       {/* Main content */}
       <div className="px-8 pt-8 max-w-3xl">
-        <h1 className="text-[2.5rem] font-black text-foreground tracking-tight leading-none">
+        <h1 className="text-[2.5rem] font-black text-[#1A1A1A] tracking-tight leading-none">
           Who hasn&apos;t clocked in
         </h1>
-        <p className="text-sm text-foreground/40 mt-2">Today · {dateDisplay}</p>
+        <p className="text-sm text-[#888] mt-2">Today · {dateDisplay}</p>
 
         {/* Circle + stats */}
         <div className="flex items-center gap-8 mt-8">
@@ -177,12 +177,12 @@ export default function Dashboard() {
           )}
 
           <div>
-            <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-foreground/40">Did not clock in</p>
-            <p className="text-[1.6rem] font-black text-foreground mt-1 leading-tight">
+            <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#888]">Did not clock in</p>
+            <p className="text-[1.6rem] font-black text-[#1A1A1A] mt-1 leading-tight">
               {loading ? '…' : `${missing} employees missing`}
             </p>
-            <p className="text-sm text-foreground/50 mt-1">
-              <span className="font-semibold text-foreground/70">{present}</span> of {total} present
+            <p className="text-sm text-[#666] mt-1">
+              <span className="font-semibold text-[#444]">{present}</span> of {total} present
             </p>
           </div>
         </div>
@@ -190,10 +190,10 @@ export default function Dashboard() {
         {/* Missing list */}
         <div className="mt-8">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-foreground/40">
+            <p className="text-[10px] font-bold tracking-[0.18em] uppercase text-[#888]">
               Missing · {missing} people
             </p>
-            <Link href="/attendance" className="text-[12px] text-foreground/40 hover:text-foreground/70 transition-colors">
+            <Link href="/attendance" className="text-[12px] text-[#888] hover:text-[#444] transition-colors">
               View all attendance →
             </Link>
           </div>
@@ -205,7 +205,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : absent.length === 0 ? (
-            <div className="py-12 text-center text-foreground/30 text-sm bg-white rounded-xl border border-black/5">
+            <div className="py-12 text-center text-[#aaa] text-sm bg-white rounded-xl border border-black/5">
               Everyone has clocked in today
             </div>
           ) : (
@@ -234,23 +234,23 @@ export default function Dashboard() {
 
                     {/* Name + dept */}
                     <div className="flex-1 min-w-0">
-                      <p className="text-[13px] font-bold text-foreground truncate">{emp.name}</p>
-                      <p className="text-[11px] text-foreground/40 truncate">{emp.department} · {emp.position}</p>
+                      <p className="text-[13px] font-bold text-[#1A1A1A] truncate">{emp.name}</p>
+                      <p className="text-[11px] text-[#888] truncate">{emp.department} · {emp.position}</p>
                     </div>
 
                     {/* Expected time + late */}
                     <div className="text-right flex-shrink-0">
-                      <p className="text-[9px] font-bold tracking-[0.1em] uppercase text-foreground/35">Expected</p>
+                      <p className="text-[9px] font-bold tracking-[0.1em] uppercase text-[#999]">Expected</p>
                       <p className="text-[15px] font-black text-[#C0392B] leading-tight">{scheduledDisplay.split(' ')[0]}</p>
                       {lateMin > 0 && (
-                        <p className="text-[10px] text-foreground/35">{formatLate(lateMin)}</p>
+                        <p className="text-[10px] text-[#999]">{formatLate(lateMin)}</p>
                       )}
                     </div>
 
                     {/* View button */}
                     <Link
                       href="/attendance"
-                      className="ml-2 px-3 py-1.5 rounded-lg border border-black/10 text-[11px] font-semibold text-foreground/50 hover:text-foreground hover:border-black/20 transition-colors flex-shrink-0"
+                      className="ml-2 px-3 py-1.5 rounded-lg border border-black/10 text-[11px] font-semibold text-[#666] hover:text-[#1A1A1A] hover:border-black/20 transition-colors flex-shrink-0"
                     >
                       VIEW
                     </Link>
