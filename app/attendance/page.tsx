@@ -276,9 +276,23 @@ export default function AttendancePage() {
           <h1 className="text-[2.25rem] font-black text-foreground tracking-tight leading-none">
             {selectedDeptName}
           </h1>
-          <p className="text-sm text-foreground/45 mt-2">
-            {MONTHS[month - 1]} {year} · {deptEmps.length} people
-          </p>
+          <div className="flex items-center gap-2 mt-2">
+            <button
+              onClick={() => {
+                if (month === 1) { setMonth(12); setYear(y => y - 1) }
+                else setMonth(m => m - 1)
+              }}
+              className="w-6 h-6 flex items-center justify-center rounded hover:bg-foreground/[0.06] text-foreground/40 hover:text-foreground/70 transition-colors font-bold text-base"
+            >‹</button>
+            <span className="text-sm text-foreground/45">{MONTHS[month - 1]} {year} · {deptEmps.length} people</span>
+            <button
+              onClick={() => {
+                if (month === 12) { setMonth(1); setYear(y => y + 1) }
+                else setMonth(m => m + 1)
+              }}
+              className="w-6 h-6 flex items-center justify-center rounded hover:bg-foreground/[0.06] text-foreground/40 hover:text-foreground/70 transition-colors font-bold text-base"
+            >›</button>
+          </div>
         </div>
 
         {/* Department dropdown */}
