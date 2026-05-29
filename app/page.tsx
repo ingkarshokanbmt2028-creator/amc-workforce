@@ -38,6 +38,8 @@ export default function Dashboard() {
   const [nowMin, setNowMin]     = useState(0)
   const [dayOffset, setDayOffset] = useState(0)
   const [bellOpen, setBellOpen] = useState(false)
+  const [sending, setSending] = useState(false)
+  const [sent, setSent] = useState(false)
 
   const now = new Date()
   const viewDate = new Date(now)
@@ -148,18 +150,41 @@ export default function Dashboard() {
               )}
             </button>
             {bellOpen && (
-              <div className="absolute right-0 top-10 w-72 bg-white rounded-xl shadow-lg border border-black/10 z-50 overflow-hidden">
+              <div className="absolute right-0 top-10 w-80 bg-white rounded-xl shadow-lg border border-black/10 z-50 overflow-hidden">
                 <div className="px-4 py-3 border-b border-black/5">
-                  <p className="text-[11px] font-bold tracking-[0.12em] uppercase text-[#888]">Notifications</p>
+                  <p className="text-[11px] font-bold tracking-[0.12em] uppercase text-[#888]">Absence Alert</p>
                 </div>
                 {loading ? (
                   <div className="px-4 py-4 text-sm text-[#aaa]">Loading…</div>
                 ) : absent.length === 0 ? (
-                  <div className="px-4 py-4 text-sm text-[#aaa]">No alerts right now.</div>
+                  <div className="px-4 py-4 text-sm text-[#aaa]">No absences to report.</div>
                 ) : (
-                  <div className="px-4 py-3">
+                  <div className="px-4 py-4">
                     <p className="text-[13px] font-semibold text-[#C0392B]">{absent.length} employees haven&apos;t clocked in</p>
-                    <p className="text-[11px] text-[#888] mt-0.5">Today · {present} of {total} present</p>
+                    <p className="text-[11px] text-[#888] mt-0.5 mb-3">{present} of {total} present today</p>
+                    {sent ? (
+                      <p className="text-[12px] text-green-600 font-semibold">Email sent to HR ✓</p>
+                    ) : (
+                      <button
+                        onClick={async () => {
+                          setSending(true)
+                          try {
+                            await fetch('/api/notify/absent', {
+                              method: 'POST',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ date: today }),
+                            })
+                            setSent(true)
+                          } finally {
+                            setSending(false)
+                          }
+                        }}
+                        disabled={sending}
+                        className="w-full py-2 rounded-lg bg-[#C0392B] text-white text-[12px] font-bold hover:bg-[#a93226] transition-colors disabled:opacity-50"
+                      >
+                        {sending ? 'Sending…' : 'Send absence report to HR'}
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
