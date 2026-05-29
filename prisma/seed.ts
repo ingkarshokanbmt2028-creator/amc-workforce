@@ -65,8 +65,9 @@ async function seedDepartments() {
 // ── Employees ──────────────────────────────────────────────────────────────
 
 async function seedEmployees(deptMap: Map<string, string>) {
-  const filePath = path.join(process.cwd(), 'data', 'AMC_EMPLOYEE_LIST_2026.xlsx')
-  if (!fs.existsSync(filePath)) {
+  const candidates = ['AMC EMPLOYEE LIST 2026.xlsx', 'AMC_EMPLOYEE_LIST_2026.xlsx']
+  const filePath = candidates.map(f => path.join(process.cwd(), 'data', f)).find(fs.existsSync)
+  if (!filePath) {
     console.log('No employee xlsx — skipping')
     return
   }
@@ -147,16 +148,9 @@ async function seedRotaSheet(
       where: { name: { contains: cleanName, mode: 'insensitive' } },
     })
 
-    // Auto-create any employee found in rota but not in employee list
     if (!employee) {
-      const empType = isLocum ? 'LOCUM' : 'PERMANENT'
-      const prefix = isLocum ? 'LOC' : 'AUTO'
-      const autoStaffId = `${prefix}/${deptId.slice(-6)}/${cleanName.replace(/\s+/g, '').slice(0, 8).toUpperCase()}`
-      const existing = await prisma.employee.findFirst({ where: { staffId: autoStaffId } })
-      employee = existing ?? await prisma.employee.create({
-        data: { staffId: autoStaffId, name: cleanName, departmentId: deptId, position: isLocum ? 'LOCUM' : 'STAFF', employeeType: empType },
-      })
-      console.log(`  Auto-created ${empType}: "${cleanName}"`)
+      console.warn(`  Skipping "${cleanName}" — not in employee list`)
+      continue
     }
 
     for (const [col, day] of colToDay) {
@@ -231,8 +225,9 @@ async function seedRotaFile(
 // ── Leave Balances ─────────────────────────────────────────────────────────
 
 async function seedLeaveData() {
-  const filePath = path.join(process.cwd(), 'data', 'AMC_LEAVE_2025_2026.xlsx')
-  if (!fs.existsSync(filePath)) { console.log('No leave data file — skipping'); return }
+  const leaveCandidates = ['AMC 2025-2026 Leave Data.xlsx', 'AMC_LEAVE_2025_2026.xlsx', 'AMC_2025_2026_Leave_Data.xlsx']
+  const filePath = leaveCandidates.map(f => path.join(process.cwd(), 'data', f)).find(fs.existsSync)
+  if (!filePath) { console.log('No leave data file — skipping'); return }
 
   console.log('Seeding leave balances…')
   const wb = XLSX.readFile(filePath)
@@ -291,12 +286,28 @@ async function main() {
 
   await seedEmployees(deptMap)
 
-  // Seed all rota files in data/
+  // Seed all rota files in data/ and subdirectories
   const dataDir = path.join(process.cwd(), 'data')
-  const rotaFiles = fs.readdirSync(dataDir).filter(f => f.endsWith('.xlsx') && f.toUpperCase().includes('ROTA'))
+  function findRotaFiles(dir: string): string[] {
+    const results: string[] = []
+    const seen = new Set<string>()
+    function walk(d: string) {
+      for (const entry of fs.readdirSync(d, { withFileTypes: true })) {
+        const full = path.join(d, entry.name)
+        if (entry.isDirectory()) walk(full)
+        else if (entry.name.endsWith('.xlsx') && entry.name.toUpperCase().includes('ROTA') && !seen.has(entry.name)) {
+          seen.add(entry.name)
+          results.push(full)
+        }
+      }
+    }
+    walk(dir)
+    return results
+  }
+  const rotaFilePaths = findRotaFiles(dataDir)
 
-  for (const file of rotaFiles) {
-    const fp = path.join(dataDir, file)
+  for (const fp of rotaFilePaths) {
+    const file = path.basename(fp)
     const upper = file.toUpperCase()
 
     let deptCode = 'MED'
