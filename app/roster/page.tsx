@@ -219,6 +219,22 @@ export default function RosterPage() {
     fetchRosters()
   }
 
+  async function handleCreateMonth() {
+    const deptIds = byDept
+      ? (activeDeptId ? [activeDeptId] : [])
+      : departments.map(d => d.id)
+    for (const deptId of deptIds) {
+      const exists = rosters.find(r => r.departmentId === deptId)
+      if (exists) continue
+      await fetch('/api/roster', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ departmentId: deptId, month: selMonth, year: selYear, createdBy: 'admin' }),
+      })
+    }
+    fetchRosters()
+  }
+
   async function handlePublish(deptId: string) {
     const roster = rosters.find(r => r.departmentId === deptId)
     if (!roster) return
@@ -299,7 +315,10 @@ export default function RosterPage() {
             <Pencil className="w-3.5 h-3.5" />
             Edit
           </button>
-          <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-foreground/15 text-[13px] font-medium text-foreground/70 hover:bg-foreground/[0.04] transition-colors">
+          <button
+            onClick={handleCreateMonth}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-foreground/15 text-[13px] font-medium text-foreground/70 hover:bg-foreground/[0.04] transition-colors"
+          >
             <Plus className="w-3.5 h-3.5" />
             Month
           </button>
