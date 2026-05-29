@@ -37,6 +37,7 @@ export default function Dashboard() {
   const [loading, setLoading]   = useState(true)
   const [nowMin, setNowMin]     = useState(0)
   const [dayOffset, setDayOffset] = useState(0)
+  const [bellOpen, setBellOpen] = useState(false)
 
   const now = new Date()
   const viewDate = new Date(now)
@@ -137,11 +138,33 @@ export default function Dashboard() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
             </svg>
           </Link>
-          <button className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors text-[#888]">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-            </svg>
-          </button>
+          <div className="relative">
+            <button onClick={() => setBellOpen(o => !o)} className="relative w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/5 transition-colors text-[#888]">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+              {absent.length > 0 && (
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full" />
+              )}
+            </button>
+            {bellOpen && (
+              <div className="absolute right-0 top-10 w-72 bg-white rounded-xl shadow-lg border border-black/10 z-50 overflow-hidden">
+                <div className="px-4 py-3 border-b border-black/5">
+                  <p className="text-[11px] font-bold tracking-[0.12em] uppercase text-[#888]">Notifications</p>
+                </div>
+                {loading ? (
+                  <div className="px-4 py-4 text-sm text-[#aaa]">Loading…</div>
+                ) : absent.length === 0 ? (
+                  <div className="px-4 py-4 text-sm text-[#aaa]">No alerts right now.</div>
+                ) : (
+                  <div className="px-4 py-3">
+                    <p className="text-[13px] font-semibold text-[#C0392B]">{absent.length} employees haven&apos;t clocked in</p>
+                    <p className="text-[11px] text-[#888] mt-0.5">Today · {present} of {total} present</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
