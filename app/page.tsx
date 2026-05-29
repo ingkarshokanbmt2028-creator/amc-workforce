@@ -36,14 +36,19 @@ export default function Dashboard() {
   const [present, setPresent]   = useState(0)
   const [loading, setLoading]   = useState(true)
   const [nowMin, setNowMin]     = useState(0)
+  const [dayOffset, setDayOffset] = useState(0)
 
   const now = new Date()
+  const viewDate = new Date(now)
+  viewDate.setDate(now.getDate() + dayOffset)
+  const isToday = dayOffset === 0
   const dateLabel = `${DAYS_FULL[now.getDay()].toUpperCase()} ${now.getDate()} ${MONTHS_ABB[now.getMonth()].toUpperCase()}`
-  const dateDisplay = `${DAYS_FULL[now.getDay()]}, ${now.getDate()} ${MONTHS_ABB[now.getMonth()]}`
-  const today = now.toISOString().slice(0, 10)
+  const dateDisplay = `${DAYS_FULL[viewDate.getDay()]}, ${viewDate.getDate()} ${MONTHS_ABB[viewDate.getMonth()]}`
+  const today = viewDate.toISOString().slice(0, 10)
 
   useEffect(() => {
     setNowMin(now.getHours() * 60 + now.getMinutes())
+    setLoading(true)
 
     async function load() {
       try {
@@ -84,7 +89,7 @@ export default function Dashboard() {
     }
     load()
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [today])
+  }, [today, dayOffset])
 
   const missing = absent.length
   const radius  = 54
@@ -145,7 +150,11 @@ export default function Dashboard() {
         <h1 className="text-[2.5rem] font-black text-[#1A1A1A] tracking-tight leading-none">
           Who hasn&apos;t clocked in
         </h1>
-        <p className="text-sm text-[#888] mt-2">Today · {dateDisplay}</p>
+        <div className="flex items-center gap-2 mt-2">
+          <button onClick={() => setDayOffset(d => d - 1)} className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/8 text-[#888] transition-colors font-bold">‹</button>
+          <p className="text-sm text-[#888]">{isToday ? 'Today' : dayOffset === -1 ? 'Yesterday' : dateDisplay} · {dateDisplay}</p>
+          <button onClick={() => setDayOffset(d => Math.min(0, d + 1))} disabled={isToday} className="w-5 h-5 flex items-center justify-center rounded hover:bg-black/8 text-[#888] transition-colors font-bold disabled:opacity-30">›</button>
+        </div>
 
         {/* Circle + stats */}
         <div className="flex items-center gap-8 mt-8">

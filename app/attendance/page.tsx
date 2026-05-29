@@ -122,15 +122,17 @@ export default function AttendancePage() {
   const monthStart  = `${year}-${String(month).padStart(2,'0')}-01`
   const monthEnd    = `${year}-${String(month).padStart(2,'0')}-${String(daysInMonth).padStart(2,'0')}`
 
-  // ── 7-day window ending today (or last day of selected month) ─────────────
-  const windowEnd   = month === now.getMonth() + 1 && year === now.getFullYear()
-    ? today
-    : monthEnd
-  const windowStart7 = (() => {
+  // ── 7-day window: last 7 days with actual data in the month ──────────────
+  const windowEnd = useMemo(() => {
+    if (records.length === 0) return monthEnd
+    const dates = records.map(r => (r.date ?? '').slice(0, 10)).filter(Boolean).sort()
+    return dates[dates.length - 1] ?? monthEnd
+  }, [records, monthEnd])
+  const windowStart7 = useMemo(() => {
     const d = new Date(windowEnd + 'T12:00:00')
     d.setDate(d.getDate() - 6)
     return d.toISOString().slice(0, 10)
-  })()
+  }, [windowEnd])
 
   // ── Load departments + employees once ─────────────────────────────────────
   useEffect(() => {
