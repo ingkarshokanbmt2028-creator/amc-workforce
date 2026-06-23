@@ -8,7 +8,7 @@ import {
   LogOut, Home, CalendarDays, Clock,
   BarChart3, BookOpen, Settings,
   PanelLeftClose, PanelLeftOpen, FileText,
-  ChevronDown, Download,
+  ChevronDown, Download, CalendarCheck,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
@@ -26,10 +26,11 @@ const NAV_METRICS = [
 ]
 
 const NAV_TOOLS = [
-  { href: '/reports',   label: 'Reports',    Icon: Download,  exact: false },
-  { href: '/report',    label: 'CEO Report', Icon: FileText,  exact: true  },
-  { href: '/resources', label: 'Resources',  Icon: BookOpen,  exact: false },
-  { href: '/settings',  label: 'Settings',   Icon: Settings,  exact: false },
+  { href: '/reports',   label: 'Reports',    Icon: Download,       exact: false },
+  { href: '/report',    label: 'CEO Report', Icon: FileText,       exact: true  },
+  { href: '/leave',     label: 'Leave',      Icon: CalendarCheck,  exact: false },
+  { href: '/resources', label: 'Resources',  Icon: BookOpen,       exact: false },
+  { href: '/settings',  label: 'Settings',   Icon: Settings,       exact: false },
 ]
 
 function NavItem({

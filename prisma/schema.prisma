@@ -60,6 +60,7 @@ model Employee {
   position             String
   location             String       @default("ACCRA")
   status               String       @default("ACTIVE")
+  confirmationStatus   String       @default("CONFIRMED") // CONFIRMED | PROBATION
   biotimeEmpCode       String?
   employeeType         String       @default("PERMANENT") // PERMANENT | LOCUM | CONTRACT
   expectedMonthlyHours Float        @default(180)
@@ -150,18 +151,22 @@ model BiotimeSyncLog {
 }
 
 model LeaveBalance {
-  id                String   @id @default(cuid())
-  employeeId        String
-  employee          Employee @relation(fields: [employeeId], references: [id])
-  fiscalYear        String   // e.g. "2025-2026"
-  annualEntitlement Int      @default(0)
-  openingBalance    Int      @default(0)
-  totalAvailable    Int      @default(0)
-  daysTaken         Int      @default(0)
-  daysRemaining     Int      @default(0)
-  leaveNotes        String?  // raw leave date text
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id                  String   @id @default(cuid())
+  employeeId          String
+  employee            Employee @relation(fields: [employeeId], references: [id])
+  fiscalYear          String   // e.g. "2025-2026"
+  annualEntitlement   Int      @default(0)
+  openingBalance      Int      @default(0)  // annual carry forward
+  totalAvailable      Int      @default(0)
+  daysTaken           Int      @default(0)
+  daysRemaining       Int      @default(0)
+  holidayCarryForward Int      @default(0)  // accumulated holiday days from prior year
+  sickEntitlement     Int      @default(12)
+  sickTaken           Int      @default(0)
+  sickRemaining       Int      @default(12)
+  leaveNotes          String?  // raw leave date text
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   @@unique([employeeId, fiscalYear])
 }
